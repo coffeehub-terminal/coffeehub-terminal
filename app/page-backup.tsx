@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
+import { useState } from "react";
+
 type Lot = {
   id: number;
   companyName: string;
@@ -9,6 +9,10 @@ type Lot = {
   lotNumber: string;
   origin: string;
   processMethod: string;
+  score: string;
+  fobBuenaventura: string;
+  harvestYear: string;
+  requiredBags: string;
   certifications: string;
 };
 
@@ -27,74 +31,43 @@ type Deal = {
   status: string;
 };
 
-type Room = {
-  id: string;
-  name: string;
-  offerIds: string[];
-  status: string;
-};
-
 export default function Home() {
   const [activeScreen, setActiveScreen] = useState("inventory");
-  const [lots, setLots] = useState<Lot[]>([]);
 
-  useEffect(() => {
-    loadLots();
-  }, []);
+  const [lots, setLots] = useState<Lot[]>([
+    {
+      id: 1,
+      companyName: "Cafe Exportadora SAS",
+      lotReference: "REF-001",
+      lotNumber: "LOT-001",
+      origin: "Huila",
+      processMethod: "Washed",
+      score: "86",
+      fobBuenaventura: "4.25",
+      harvestYear: "2024/2025",
+      requiredBags: "40",
+      certifications: "Organic",
+    },
+    {
+      id: 2,
+      companyName: "Andes Coffee",
+      lotReference: "REF-002",
+      lotNumber: "LOT-002",
+      origin: "Nariño",
+      processMethod: "Honey",
+      score: "87",
+      fobBuenaventura: "4.55",
+      harvestYear: "2024/2025",
+      requiredBags: "32",
+      certifications: "Rainforest Alliance",
+    },
+  ]);
 
-  const loadLots = async () => {
-    const { data, error } = await supabase
-      .from("Lots")
-      .select("*");
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [selectedLot, setSelectedLot] = useState<Lot | null>(null);
 
-    console.log("LOTS:", data);
-    console.log("LOTS ERROR:", error);
-
-    if (data) {
-      const formattedLots = data.map((lot: any) => ({
-        id: lot.id,
-        companyName: lot.Company || "",
-        lotReference: lot.lot_reference || "",
-        lotNumber: lot.lot_number || "",
-        origin: lot.origin || "",
-        processMethod: lot.process || "",
-        score: String(lot.score || ""),
-        fobBuenaventura: String(lot.fob || ""),
-        harvestYear: String(lot.harvest_year || ""),
-        requiredBags: String(lot.required_bags || ""),
-        certifications: lot.certifications || "",
-      }));
-
-      setLots(formattedLots);
-    }
-  };
-
-
-
-
-
-
-
-const [offers, setOffers] = useState<Offer[]>([]);
-const [deals, setDeals] = useState<Deal[]>([]);
-
-const [rooms, setRooms] = useState<Room[]>([
-  {
-    id: "ROOM-001",
-    name: "Starbucks Colombia Q4",
-    offerIds: ["OFF-001"],
-    status: "Draft",
-  },
-]);
-
-const [showRoomForm, setShowRoomForm] = useState(false);
-
-const [newRoomName, setNewRoomName] = useState("");
-const [selectedOfferIds, setSelectedOfferIds] = useState<string[]>([]);
-
-const [selectedLot, setSelectedLot] = useState<Lot | null>(null);
-
-const [showLotForm, setShowLotForm] = useState(false);
+  const [showLotForm, setShowLotForm] = useState(false);
 
   const [newLot, setNewLot] = useState({
     companyName: "",
@@ -109,31 +82,7 @@ const [showLotForm, setShowLotForm] = useState(false);
     certifications: "",
   });
 
-const testSupabase = async () => {
-  const { data, error } = await supabase
-    .from("Lots")
-    .insert([
-      {
-        Company: "Test Company",
-        lot_reference: "TEST-REF",
-        lot_number: "TEST-LOT",
-        origin: "Huila",
-        process: "Washed",
-        score: 86,
-        fob: 4.25,
-        harvest_year: 2025,
-        required_bags: 40,
-        certifications: "Organic",
-      },
-    ]);
-
-  console.log("DATA:", data);
-  console.log("ERROR:", error);
-};
-
-
-const addLot = async () => {
-
+  const addLot = () => {
     if (
       !newLot.companyName ||
       !newLot.lotReference ||
@@ -147,38 +96,7 @@ const addLot = async () => {
       ...newLot,
     };
 
-await supabase.from("Lots").insert([
-  {
-    Company: newLot.companyName,
-    lot_reference: newLot.lotReference,
-    lot_number: newLot.lotNumber,
-    origin: newLot.origin,
-    process: newLot.processMethod,
-    score: Number(newLot.score),
-    fob: Number(newLot.fobBuenaventura),
-    harvest_year: Number(newLot.harvestYear),
-    required_bags: Number(newLot.requiredBags),
-    certifications: newLot.certifications,
-  },
-]);
-
-setLots([...lots, lot]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    setLots([...lots, lot]);
 
     setNewLot({
       companyName: "",
@@ -225,21 +143,6 @@ setLots([...lots, lot]);
 
     setActiveScreen("deals");
   };
-  const saveRoom = () => {
-  if (!newRoomName) return;
-
-  const room: Room = {
-    id: `ROOM-${String(rooms.length + 1).padStart(3, "0")}`,
-    name: newRoomName,
-offerIds: selectedOfferIds,    
-    status: "Draft",
-  };
-
-  setRooms([...rooms, room]);
-
-  setNewRoomName("");
-  setShowRoomForm(false);
-};
 
   return (
     <main className="min-h-screen bg-[#071412] text-white">
@@ -261,25 +164,18 @@ offerIds: selectedOfferIds,
             </button>
 
             <button
-  onClick={() => setActiveScreen("offers")}
-  className="block w-full text-left px-4 py-3 rounded hover:bg-[#10231e]"
->
-  📦 Offers
-</button>
+              onClick={() => setActiveScreen("offers")}
+              className="block w-full text-left px-4 py-3 rounded hover:bg-[#10231e]"
+            >
+              📦 Offers
+            </button>
 
-<button
-  onClick={() => setActiveScreen("rooms")}
-  className="block w-full text-left px-4 py-3 rounded hover:bg-[#10231e]"
->
-  🚪 Rooms
-</button>
-
-<button
-  onClick={() => setActiveScreen("deals")}
-  className="block w-full text-left px-4 py-3 rounded hover:bg-[#10231e]"
->
-  🤝 Deals
-</button>
+            <button
+              onClick={() => setActiveScreen("deals")}
+              className="block w-full text-left px-4 py-3 rounded hover:bg-[#10231e]"
+            >
+              🤝 Deals
+            </button>
 
             <div className="border-t border-gray-800 mt-6 pt-6 text-gray-500 space-y-2">
               <div>🏢 CRM</div>
@@ -315,12 +211,7 @@ offerIds: selectedOfferIds,
                 >
                   + New Lot
                 </button>
-<button
-  onClick={testSupabase}
-  className="bg-blue-500 text-white px-4 py-2 rounded-lg ml-2"
->
-  Test DB
-</button>
+
               </div>
 
               {showLotForm && (
@@ -603,121 +494,7 @@ offerIds: selectedOfferIds,
 
             </div>
           )}
-{activeScreen === "rooms" && (
-  <div className="bg-[#10231e] rounded-xl p-6">
 
-    <div className="flex justify-between items-center mb-6">
-      <h3 className="text-3xl font-bold">
-        Rooms
-      </h3>
-
-      <button
-        onClick={() => setShowRoomForm(!showRoomForm)}
-        className="bg-green-500 text-black px-4 py-2 rounded-lg font-bold"
-      >
-        + Create Room
-      </button>
-    </div>
-
-    {showRoomForm && (
-      <div className="bg-[#071412] rounded-xl p-6 mb-8">
-
-        <h4 className="text-2xl font-bold mb-4">
-          Room Builder
-        </h4>
-
-        <input
-          placeholder="Room Name"
-          value={newRoomName}
-          onChange={(e) => setNewRoomName(e.target.value)}
-          className="bg-black p-3 rounded w-full mb-6"
-        />
-
-        <h4 className="text-xl font-bold mb-3">
-          Available Offers
-        </h4>
-
-        {offers.length === 0 ? (
-  <div className="text-gray-400">
-    Create offers from Inventory first.
-  </div>
-) : (
-  offers.map((offer) => (
-    <label
-      key={offer.id}
-      className="border border-gray-700 rounded p-3 mb-3 flex items-center gap-3 cursor-pointer"
-    >
-      <input
-        type="checkbox"
-        checked={selectedOfferIds.includes(offer.id)}
-        onChange={(e) => {
-          if (e.target.checked) {
-            setSelectedOfferIds([
-              ...selectedOfferIds,
-              offer.id,
-            ]);
-          } else {
-            setSelectedOfferIds(
-              selectedOfferIds.filter(
-                (id) => id !== offer.id
-              )
-            );
-          }
-        }}
-      />
-
-      <div>
-        <div className="font-bold">
-          {offer.id}
-        </div>
-
-        <div>
-          {offer.lotNumber}
-        </div>
-
-        <div>
-          {offer.origin}
-        </div>
-      </div>
-    </label>
-  ))
-)}
-
-        <button
-  onClick={saveRoom}
-  className="mt-6 bg-green-500 text-black px-4 py-2 rounded font-bold"
->
-  Save Room
-</button>
-
-      </div>
-    )}
-
-    {rooms.map((room) => (
-      <div
-        key={room.id}
-        className="border-b border-gray-800 py-4"
-      >
-        <div className="text-xl font-bold">
-          {room.name}
-        </div>
-
-        <div className="text-gray-400">
-          {room.id}
-        </div>
-
-        <div>
-          Offers: {room.offerIds.join(", ")}
-        </div>
-
-        <div>
-          Status: {room.status}
-        </div>
-      </div>
-    ))}
-
-  </div>
-)}
           {activeScreen === "deals" && (
             <div className="bg-[#10231e] rounded-xl p-6">
 

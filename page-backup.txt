@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
+import { useState } from "react";
+
 type Lot = {
   id: number;
   companyName: string;
@@ -9,6 +9,10 @@ type Lot = {
   lotNumber: string;
   origin: string;
   processMethod: string;
+  score: string;
+  fobBuenaventura: string;
+  harvestYear: string;
+  requiredBags: string;
   certifications: string;
 };
 
@@ -26,7 +30,6 @@ type Deal = {
   lotNumber: string;
   status: string;
 };
-
 type Room = {
   id: string;
   name: string;
@@ -36,44 +39,35 @@ type Room = {
 
 export default function Home() {
   const [activeScreen, setActiveScreen] = useState("inventory");
-  const [lots, setLots] = useState<Lot[]>([]);
 
-  useEffect(() => {
-    loadLots();
-  }, []);
-
-  const loadLots = async () => {
-    const { data, error } = await supabase
-      .from("Lots")
-      .select("*");
-
-    console.log("LOTS:", data);
-    console.log("LOTS ERROR:", error);
-
-    if (data) {
-      const formattedLots = data.map((lot: any) => ({
-        id: lot.id,
-        companyName: lot.Company || "",
-        lotReference: lot.lot_reference || "",
-        lotNumber: lot.lot_number || "",
-        origin: lot.origin || "",
-        processMethod: lot.process || "",
-        score: String(lot.score || ""),
-        fobBuenaventura: String(lot.fob || ""),
-        harvestYear: String(lot.harvest_year || ""),
-        requiredBags: String(lot.required_bags || ""),
-        certifications: lot.certifications || "",
-      }));
-
-      setLots(formattedLots);
-    }
-  };
-
-
-
-
-
-
+  const [lots, setLots] = useState<Lot[]>([
+    {
+      id: 1,
+      companyName: "Cafe Exportadora SAS",
+      lotReference: "REF-001",
+      lotNumber: "LOT-001",
+      origin: "Huila",
+      processMethod: "Washed",
+      score: "86",
+      fobBuenaventura: "4.25",
+      harvestYear: "2024/2025",
+      requiredBags: "40",
+      certifications: "Organic",
+    },
+    {
+      id: 2,
+      companyName: "Andes Coffee",
+      lotReference: "REF-002",
+      lotNumber: "LOT-002",
+      origin: "Nariño",
+      processMethod: "Honey",
+      score: "87",
+      fobBuenaventura: "4.55",
+      harvestYear: "2024/2025",
+      requiredBags: "32",
+      certifications: "Rainforest Alliance",
+    },
+  ]);
 
 const [offers, setOffers] = useState<Offer[]>([]);
 const [deals, setDeals] = useState<Deal[]>([]);
@@ -109,31 +103,7 @@ const [showLotForm, setShowLotForm] = useState(false);
     certifications: "",
   });
 
-const testSupabase = async () => {
-  const { data, error } = await supabase
-    .from("Lots")
-    .insert([
-      {
-        Company: "Test Company",
-        lot_reference: "TEST-REF",
-        lot_number: "TEST-LOT",
-        origin: "Huila",
-        process: "Washed",
-        score: 86,
-        fob: 4.25,
-        harvest_year: 2025,
-        required_bags: 40,
-        certifications: "Organic",
-      },
-    ]);
-
-  console.log("DATA:", data);
-  console.log("ERROR:", error);
-};
-
-
-const addLot = async () => {
-
+  const addLot = () => {
     if (
       !newLot.companyName ||
       !newLot.lotReference ||
@@ -147,38 +117,8 @@ const addLot = async () => {
       ...newLot,
     };
 
-await supabase.from("Lots").insert([
-  {
-    Company: newLot.companyName,
-    lot_reference: newLot.lotReference,
-    lot_number: newLot.lotNumber,
-    origin: newLot.origin,
-    process: newLot.processMethod,
-    score: Number(newLot.score),
-    fob: Number(newLot.fobBuenaventura),
-    harvest_year: Number(newLot.harvestYear),
-    required_bags: Number(newLot.requiredBags),
-    certifications: newLot.certifications,
-  },
-]);
 
-setLots([...lots, lot]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    setLots([...lots, lot]);
 
     setNewLot({
       companyName: "",
@@ -315,12 +255,7 @@ offerIds: selectedOfferIds,
                 >
                   + New Lot
                 </button>
-<button
-  onClick={testSupabase}
-  className="bg-blue-500 text-white px-4 py-2 rounded-lg ml-2"
->
-  Test DB
-</button>
+
               </div>
 
               {showLotForm && (
