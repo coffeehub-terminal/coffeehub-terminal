@@ -75,23 +75,30 @@ useEffect(() => {
 
     if (data) {
       const formattedLots = data.map((lot: any) => ({
-        id: lot.id,
-        companyName: lot.Company || "",
-        lotReference: lot.lot_reference || "",
-        lotNumber: lot.lot_number || "",
-        origin: lot.origin || "",
-        processMethod: lot.process || "",
-        score: String(lot.score || ""),
-        fobBuenaventura: String(lot.fob || ""),
-        harvestYear: String(lot.harvest_year || ""),
-        requiredBags: String(lot.required_bags || ""),
-        certifications: lot.certifications || "",
+  id: lot.id,
+  companyName: lot.Company || "",
+  lotReference: lot.lot_reference || "",
+  lotNumber: lot.lot_number || "",
+  origin: lot.origin || "",
+  processMethod: lot.process || "",
 
-      }));
+  score: String(lot.score || ""),
+  fobBuenaventura: String(lot.fob || ""),
+  harvestYear: String(lot.harvest_year || ""),
+  requiredBags: String(lot.required_bags || ""),
+  certifications: lot.certifications || "",
 
-      setLots(formattedLots);
-    }
-  };
+  variety: lot.variety || "",
+  altitude: lot.altitude || "",
+  farm: lot.farm || "",
+  producer: lot.producer || "",
+  cupNotes: lot.cup_notes || "",
+
+  photoUrl: lot.photo_url || "",
+  photoFile: null,
+}));
+
+setLots(formattedLots);
 
 
 
