@@ -199,7 +199,28 @@ const [selectedLot, setSelectedLot] = useState<Lot | null>(null);
 
 const [showLotForm, setShowLotForm] = useState(false);
 
-  const [newLot, setNewLot] = useState({
+  const [newLot, setNewLot] = useState<{
+  companyName: string;
+  lotReference: string;
+  lotNumber: string;
+  origin: string;
+  processMethod: string;
+
+  score: string;
+  fobBuenaventura: string;
+  harvestYear: string;
+  requiredBags: string;
+  certifications: string;
+
+  variety: string;
+  altitude: string;
+  farm: string;
+  producer: string;
+  cupNotes: string;
+
+  photoFile: File | null;
+  photoUrl: string;
+}>({
   companyName: "",
   lotReference: "",
   lotNumber: "",
