@@ -856,14 +856,14 @@ if (participantEmail) {
       if (rooms) {
         for (const room of rooms) {
 
-          const current =
-            room.offer_ids
-              ? room.offer_ids.split(",")
-              : [];
+          const current: string[] =
+  room.offer_ids
+    ? room.offer_ids.split(",")
+    : [];
 
-          const cleaned = current.filter(
-            (id) => !offerIds.includes(id)
-          );
+const cleaned = current.filter(
+  (id: string) => !offerIds.includes(id)
+);
 
           await supabase
             .from("Rooms")
