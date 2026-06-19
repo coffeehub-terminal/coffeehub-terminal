@@ -258,7 +258,8 @@ const addLot = async () => {
   let photoUrl = "";
 
   if (newLot.photoFile) {
-    const fileName = `${Date.now()}-${newLot.photoFile.name}`;
+    const file = newLot.photoFile as File;
+const fileName = `${Date.now()}-${file.name}`;
 
     const { data, error } = await supabase.storage
       .from("coffee-photos")
