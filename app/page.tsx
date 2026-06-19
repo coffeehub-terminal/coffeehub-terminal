@@ -46,6 +46,7 @@ type Room = {
   name: string;
   offerIds: string[];
   status: string;
+  shareToken?: string;
 };
 
 export default function Home() {
@@ -152,13 +153,14 @@ const loadRooms = async () => {
 
   if (data) {
     const formattedRooms = data.map((room: any) => ({
-      id: room.id,
-      name: room.name || "",
-      offerIds: room.offer_ids
-        ? room.offer_ids.split(",")
-        : [],
-      status: room.status || "",
-    }));
+  id: room.id,
+  name: room.name || "",
+  offerIds: room.offer_ids
+    ? room.offer_ids.split(",")
+    : [],
+  status: room.status || "",
+  shareToken: room.share_token || "",
+}));
 
     setRooms(formattedRooms);
   }
@@ -298,7 +300,9 @@ const fileName = `${Date.now()}-${file.name}`;
     photoUrl,
   };
 
-  await supabase.from("Lots").insert([
+  const { data, error } = await supabase
+  .from("Lots")
+  .insert([
     {
       Company: newLot.companyName,
       lot_reference: newLot.lotReference,
@@ -312,15 +316,19 @@ const fileName = `${Date.now()}-${file.name}`;
       required_bags: Number(newLot.requiredBags),
       certifications: newLot.certifications,
 
-      variety: newLot.variety,
-      altitude: newLot.altitude,
-      farm: newLot.farm,
-      producer: newLot.producer,
-      cup_notes: newLot.cupNotes,
+
 
       photo_url: photoUrl,
     },
   ]);
+
+console.log("LOT INSERT DATA:", data);
+console.log("LOT INSERT ERROR:", error);
+
+if (error) {
+  alert(error.message);
+  return;
+}
 
   setLots([...lots, lot]);
 
@@ -471,6 +479,7 @@ offerIds: selectedOfferIds,
       name: room.name,
       offer_ids: room.offerIds.join(","),
       status: room.status,
+      share_token: crypto.randomUUID(),
     },
   ]);
 
@@ -814,6 +823,80 @@ if (participantEmail) {
                           <td>{lot.companyName}</td>
                           <td>{lot.origin}</td>
                           <td>{lot.score}</td>
+                          <td
+  onClick={async (e) => {
+  e.stopPropagation();
+
+  const confirmed = window.confirm(
+    `Delete ${lot.lotNumber} and all related records?`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    const { data: offers } = await supabase
+      .from("Offers")
+      .select("id")
+      .eq("lot_number", lot.lotNumber);
+
+    const offerIds =
+      offers?.map((o) => o.id) || [];
+
+    if (offerIds.length > 0) {
+
+      await supabase
+        .from("Deals")
+        .delete()
+        .in("offer_id", offerIds);
+
+      const { data: rooms } = await supabase
+        .from("Rooms")
+        .select("*");
+
+      if (rooms) {
+        for (const room of rooms) {
+
+          const current =
+            room.offer_ids
+              ? room.offer_ids.split(",")
+              : [];
+
+          const cleaned = current.filter(
+            (id) => !offerIds.includes(id)
+          );
+
+          await supabase
+            .from("Rooms")
+            .update({
+              offer_ids: cleaned.join(","),
+            })
+            .eq("id", room.id);
+        }
+      }
+
+      await supabase
+        .from("Offers")
+        .delete()
+        .in("id", offerIds);
+    }
+
+    const { error } = await supabase
+      .from("Lots")
+      .delete()
+      .eq("id", lot.id);
+
+    if (error) throw error;
+
+    await loadLots();
+
+  } catch (err: any) {
+    alert(err.message);
+  }
+}}
+  className="text-red-500 hover:text-red-300 text-center"
+>
+  🗑️
+</td>
                         </tr>
                       ))}
 
@@ -1089,14 +1172,14 @@ if (participantEmail) {
 
   <div className="bg-black border border-gray-700 rounded p-3 flex justify-between items-center">
     <span className="text-green-400">
-      {`https://coffeehub.com/room/${selectedRoom.id}`}
+{`https://coffeehub.com/r/${selectedRoom.shareToken}`}
     </span>
 
     <button
       onClick={() => {
         navigator.clipboard.writeText(
-          `https://coffeehub.com/room/${selectedRoom.id}`
-        );
+  `https://coffeehub.com/r/${selectedRoom.shareToken}`
+);
         alert("Room link copied");
       }}
       className="bg-green-500 text-black px-3 py-1 rounded font-bold"
