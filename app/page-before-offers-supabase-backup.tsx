@@ -9,21 +9,7 @@ type Lot = {
   lotNumber: string;
   origin: string;
   processMethod: string;
-
-  score: string;
-  fobBuenaventura: string;
-  harvestYear: string;
-  requiredBags: string;
   certifications: string;
-
-  variety: string;
-  altitude: string;
-  farm: string;
-  producer: string;
-  cupNotes: string;
-
-  photoFile?: File | null;
-  photoUrl?: string;
 };
 
 type Offer = {
@@ -52,18 +38,9 @@ export default function Home() {
   const [activeScreen, setActiveScreen] = useState("inventory");
   const [lots, setLots] = useState<Lot[]>([]);
 
-useEffect(() => {
-  loadLots();
-  loadOffers();
-  loadDeals();
-  loadRooms();
-}, []);
-
-
-
-
-
-
+  useEffect(() => {
+    loadLots();
+  }, []);
 
   const loadLots = async () => {
     const { data, error } = await supabase
@@ -86,95 +63,11 @@ useEffect(() => {
         harvestYear: String(lot.harvest_year || ""),
         requiredBags: String(lot.required_bags || ""),
         certifications: lot.certifications || "",
-
       }));
 
       setLots(formattedLots);
     }
   };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  const loadOffers = async () => {
-    const { data, error } = await supabase
-      .from("Offers")
-      .select("*");
-
-    console.log("OFFERS:", data);
-    console.log("OFFERS ERROR:", error);
-
-    if (data) {
-      const formattedOffers = data.map((offer: any) => ({
-        id: offer.id,
-        lotNumber: offer.lot_number || "",
-        companyName: offer.company_name || "",
-        origin: offer.origin || "",
-        status: offer.status || "",
-      }));
-
-      setOffers(formattedOffers);
-    }
-  };
-
-  const loadDeals = async () => {
-  const { data, error } = await supabase
-    .from("Deals")
-    .select("*");
-
-  console.log("DEALS:", data);
-  console.log("DEALS ERROR:", error);
-
-  if (data) {
-    const formattedDeals = data.map((deal: any) => ({
-      id: deal.id,
-      offerId: deal.offer_id || "",
-      lotNumber: deal.lot_number || "",
-      status: deal.status || "",
-    }));
-
-    setDeals(formattedDeals);
-  }
-};
-const loadRooms = async () => {
-  const { data, error } = await supabase
-    .from("Rooms")
-    .select("*");
-
-  console.log("ROOMS:", data);
-  console.log("ROOMS ERROR:", error);
-
-  if (data) {
-    const formattedRooms = data.map((room: any) => ({
-      id: room.id,
-      name: room.name || "",
-      offerIds: room.offer_ids
-        ? room.offer_ids.split(",")
-        : [],
-      status: room.status || "",
-    }));
-
-    setRooms(formattedRooms);
-  }
-};
-
-
-
-
 
 
 
@@ -194,41 +87,27 @@ const [rooms, setRooms] = useState<Room[]>([
   },
 ]);
 
-const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-const [roomParticipants, setRoomParticipants] = useState<any[]>([]);
-const [roomOffers, setRoomOffers] = useState<Offer[]>([]);
 const [showRoomForm, setShowRoomForm] = useState(false);
 
 const [newRoomName, setNewRoomName] = useState("");
 const [selectedOfferIds, setSelectedOfferIds] = useState<string[]>([]);
-const [participantEmail, setParticipantEmail] = useState("");
 
 const [selectedLot, setSelectedLot] = useState<Lot | null>(null);
 
 const [showLotForm, setShowLotForm] = useState(false);
 
   const [newLot, setNewLot] = useState({
-  companyName: "",
-  lotReference: "",
-  lotNumber: "",
-  origin: "",
-  processMethod: "",
-
-  score: "",
-  fobBuenaventura: "",
-  harvestYear: "",
-  requiredBags: "",
-  certifications: "",
-
-  variety: "",
-  altitude: "",
-  farm: "",
-  producer: "",
-  cupNotes: "",
-
-  photoFile: null,
-  photoUrl: "",
-});
+    companyName: "",
+    lotReference: "",
+    lotNumber: "",
+    origin: "",
+    processMethod: "",
+    score: "",
+    fobBuenaventura: "",
+    harvestYear: "",
+    requiredBags: "",
+    certifications: "",
+  });
 
 const testSupabase = async () => {
   const { data, error } = await supabase
@@ -255,159 +134,82 @@ const testSupabase = async () => {
 
 const addLot = async () => {
 
-  if (
-    !newLot.companyName ||
-    !newLot.lotReference ||
-    !newLot.lotNumber
-  ) {
-    return;
-  }
-
-  let photoUrl = "";
-
-  if (newLot.photoFile) {
-    const fileName = `${Date.now()}-${newLot.photoFile.name}`;
-
-    const { data, error } = await supabase.storage
-      .from("coffee-photos")
-      .upload(fileName, newLot.photoFile);
-
-    if (!error && data) {
-      photoUrl =
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/coffee-photos/${fileName}`;
+    if (
+      !newLot.companyName ||
+      !newLot.lotReference ||
+      !newLot.lotNumber
+    ) {
+      return;
     }
-  }
 
-  const lot: Lot = {
-    id: Date.now(),
-    ...newLot,
-    photoUrl,
+    const lot: Lot = {
+      id: Date.now(),
+      ...newLot,
+    };
+
+await supabase.from("Lots").insert([
+  {
+    Company: newLot.companyName,
+    lot_reference: newLot.lotReference,
+    lot_number: newLot.lotNumber,
+    origin: newLot.origin,
+    process: newLot.processMethod,
+    score: Number(newLot.score),
+    fob: Number(newLot.fobBuenaventura),
+    harvest_year: Number(newLot.harvestYear),
+    required_bags: Number(newLot.requiredBags),
+    certifications: newLot.certifications,
+  },
+]);
+
+setLots([...lots, lot]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    setNewLot({
+      companyName: "",
+      lotReference: "",
+      lotNumber: "",
+      origin: "",
+      processMethod: "",
+      score: "",
+      fobBuenaventura: "",
+      harvestYear: "",
+      requiredBags: "",
+      certifications: "",
+    });
+
+    setShowLotForm(false);
   };
 
-  await supabase.from("Lots").insert([
-    {
-      Company: newLot.companyName,
-      lot_reference: newLot.lotReference,
-      lot_number: newLot.lotNumber,
-      origin: newLot.origin,
+  const createOffer = (lot: Lot) => {
+    const offer: Offer = {
+      id: `OFF-${String(offers.length + 1).padStart(3, "0")}`,
+      lotNumber: lot.lotNumber,
+      companyName: lot.companyName,
+      origin: lot.origin,
+      status: "Open",
+    };
 
-      process: newLot.processMethod,
-      score: Number(newLot.score),
-      fob: Number(newLot.fobBuenaventura),
-      harvest_year: Number(newLot.harvestYear),
-      required_bags: Number(newLot.requiredBags),
-      certifications: newLot.certifications,
-
-      variety: newLot.variety,
-      altitude: newLot.altitude,
-      farm: newLot.farm,
-      producer: newLot.producer,
-      cup_notes: newLot.cupNotes,
-
-      photo_url: photoUrl,
-    },
-  ]);
-
-  setLots([...lots, lot]);
-
-  setNewLot({
-    companyName: "",
-    lotReference: "",
-    lotNumber: "",
-    origin: "",
-    processMethod: "",
-    score: "",
-    fobBuenaventura: "",
-    harvestYear: "",
-    requiredBags: "",
-    certifications: "",
-    variety: "",
-    altitude: "",
-    farm: "",
-    producer: "",
-    cupNotes: "",
-    photoFile: null,
-    photoUrl: "",
-  });
-
-  setShowLotForm(false);
-
-  loadLots();
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  const createOffer = async (lot: Lot) => {
-  const offer: Offer = {
-    id: `OFF-${Date.now()}`,
-    lotNumber: lot.lotNumber,
-    companyName: lot.companyName,
-    origin: lot.origin,
-    status: "Open",
+    setOffers([...offers, offer]);
+    setActiveScreen("offers");
   };
 
-  const { error } = await supabase
-    .from("Offers")
-    .insert([
-      {
-        id: offer.id,
-        lot_number: offer.lotNumber,
-        company_name: offer.companyName,
-          photos: lot.photoUrl || "",
-
-        origin: offer.origin,
-        status: offer.status,
-
-        process: lot.processMethod,
-        score: Number(lot.score),
-        fob: Number(lot.fobBuenaventura),
-        harvest_year: Number(lot.harvestYear),
-        required_bags: Number(lot.requiredBags),
-        certifications: lot.certifications,
-
-        variety: lot.variety,
-        altitude: lot.altitude,
-        farm: lot.farm,
-        producer: lot.producer,
-        cup_notes: lot.cupNotes,
-      },
-    ]);
-
-  if (error) {
-    console.log("OFFER INSERT ERROR:", error);
-    return;
-  }
-
-  loadOffers();
-  setActiveScreen("offers");
-};
-
-
-
-
-
-
-
-const createDeal = async (offer: Offer) => {
+  const createDeal = (offer: Offer) => {
     const deal: Deal = {
       id: `DEAL-${String(deals.length + 1).padStart(3, "0")}`,
       offerId: offer.id,
@@ -415,23 +217,7 @@ const createDeal = async (offer: Offer) => {
       status: "Confirmed",
     };
 
-const { error } = await supabase
-  .from("Deals")
-  .insert([
-    {
-      id: deal.id,
-      offer_id: offer.id,
-      lot_number: offer.lotNumber,
-      status: deal.status,
-    },
-  ]);
-
-if (error) {
-  console.log("DEAL INSERT ERROR:", error);
-  return;
-}
-
-
+    setDeals([...deals, deal]);
 
     setOffers(
       offers.filter((existing) => existing.id !== offer.id)
@@ -439,7 +225,7 @@ if (error) {
 
     setActiveScreen("deals");
   };
-  const saveRoom = async () => {
+  const saveRoom = () => {
   if (!newRoomName) return;
 
   const room: Room = {
@@ -449,35 +235,7 @@ offerIds: selectedOfferIds,
     status: "Draft",
   };
 
-  const { error } = await supabase
-  .from("Rooms")
-  .insert([
-    {
-      id: room.id,
-      name: room.name,
-      offer_ids: room.offerIds.join(","),
-      status: room.status,
-    },
-  ]);
-
-if (error) {
-  console.log("ROOM INSERT ERROR:", error);
-  return;
-}
-
-loadRooms();
-if (participantEmail) {
-  await supabase
-    .from("RoomParticipants")
-    .insert([
-      {
-        room_id: room.id,
-        email: participantEmail,
-        role: "guest",
-        status: "invited",
-      },
-    ]);
-}
+  setRooms([...rooms, room]);
 
   setNewRoomName("");
   setShowRoomForm(false);
@@ -651,65 +409,6 @@ if (participantEmail) {
                     }
                     className="bg-black p-2 rounded"
                   />
-                  <input
-  placeholder="Variety"
-  value={newLot.variety || ""}
-  onChange={(e) =>
-    setNewLot({
-      ...newLot,
-      variety: e.target.value,
-    })
-  }
-  className="bg-black p-2 rounded"
-/>
-
-<input
-  placeholder="Altitude"
-  value={newLot.altitude || ""}
-  onChange={(e) =>
-    setNewLot({
-      ...newLot,
-      altitude: e.target.value,
-    })
-  }
-  className="bg-black p-2 rounded"
-/>
-
-<input
-  placeholder="Farm"
-  value={newLot.farm || ""}
-  onChange={(e) =>
-    setNewLot({
-      ...newLot,
-      farm: e.target.value,
-    })
-  }
-  className="bg-black p-2 rounded"
-/>
-
-<input
-  placeholder="Producer"
-  value={newLot.producer || ""}
-  onChange={(e) =>
-    setNewLot({
-      ...newLot,
-      producer: e.target.value,
-    })
-  }
-  className="bg-black p-2 rounded"
-/>
-
-<textarea
-  placeholder="Cup Notes"
-  value={newLot.cupNotes || ""}
-  onChange={(e) =>
-    setNewLot({
-      ...newLot,
-      cupNotes: e.target.value,
-    })
-  }
-  className="bg-black p-2 rounded min-h-[100px]"
-/>
 
                   <input
                     placeholder="Harvest Year"
@@ -742,18 +441,6 @@ if (participantEmail) {
                       setNewLot({
                         ...newLot,
                         certifications: e.target.value,
-                      })
-                    }
-                    className="bg-black p-2 rounded"
-                  />
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setNewLot({
-                        ...newLot,
-                        photoFile: e.target.files?.[0] || null,
                       })
                     }
                     className="bg-black p-2 rounded"
@@ -945,12 +632,6 @@ if (participantEmail) {
           onChange={(e) => setNewRoomName(e.target.value)}
           className="bg-black p-3 rounded w-full mb-6"
         />
-        <input
-  placeholder="Invite Email"
-  value={participantEmail}
-  onChange={(e) => setParticipantEmail(e.target.value)}
-  className="bg-black p-3 rounded w-full mb-6"
-/>
 
         <h4 className="text-xl font-bold mb-3">
           Available Offers
@@ -1014,25 +695,9 @@ if (participantEmail) {
 
     {rooms.map((room) => (
       <div
-  key={room.id}
-  onClick={async () => {
-  setSelectedRoom(room);
-
-  const { data: participants } = await supabase
-    .from("RoomParticipants")
-    .select("*")
-    .eq("room_id", room.id);
-
-  setRoomParticipants(participants || []);
-
-  const selectedOffers = offers.filter((offer) =>
-    room.offerIds.includes(offer.id)
-  );
-
-  setRoomOffers(selectedOffers);
-}}
-  className="border-b border-gray-800 py-4 cursor-pointer hover:bg-[#071412]"
->
+        key={room.id}
+        className="border-b border-gray-800 py-4"
+      >
         <div className="text-xl font-bold">
           {room.name}
         </div>
@@ -1050,98 +715,6 @@ if (participantEmail) {
         </div>
       </div>
     ))}
-    {selectedRoom && (
-  <div className="mt-8 bg-[#071412] rounded-xl p-6">
-    <h4 className="text-2xl font-bold mb-4">
-      Room Details
-    </h4>
-
-    <div className="mb-2">
-      <strong>Name:</strong> {selectedRoom.name}
-    </div>
-
-    <div className="mb-2">
-      <strong>ID:</strong> {selectedRoom.id}
-      <div className="mb-2">
-  
-</div>
-
-<div className="my-6">
-  <div className="text-sm text-gray-400 mb-2">
-    Room Link
-  </div>
-  <div className="text-sm text-gray-400 mb-2">
-  </div>
-
-  <div className="bg-black border border-gray-700 rounded p-3 flex justify-between items-center">
-    <span className="text-green-400">
-      {`https://coffeehub.com/room/${selectedRoom.id}`}
-    </span>
-
-    <button
-      onClick={() => {
-        navigator.clipboard.writeText(
-          `https://coffeehub.com/room/${selectedRoom.id}`
-        );
-        alert("Room link copied");
-      }}
-      className="bg-green-500 text-black px-3 py-1 rounded font-bold"
-    >
-      Copy
-    </button>
-  </div>
-</div>
-    </div>
-
-    <div className="mb-2">
-      <strong>Status:</strong> {selectedRoom.status}
-    </div>
-
-    <div className="mb-2">
-      <div className="mb-4">
-  <strong>Participants:</strong>
-
-  {roomParticipants.length === 0 ? (
-    <div className="text-gray-400">
-      No participants
-    </div>
-  ) : (
-    roomParticipants.map((participant) => (
-      <div key={participant.id}>
-        {participant.email} ({participant.status})
-      </div>
-    ))
-  )}
-</div>
-      <div className="mb-4">
-  <strong>Offers</strong>
-
-  {roomOffers.map((offer) => (
-    <div
-      key={offer.id}
-      className="border border-gray-700 rounded p-3 mt-2"
-    >
-      <div className="font-bold">
-        {offer.id}
-      </div>
-
-      <div>
-        Lot: {offer.lotNumber}
-      </div>
-
-      <div>
-        Origin: {offer.origin}
-      </div>
-
-      <div>
-        Status: {offer.status}
-      </div>
-    </div>
-  ))}
-</div>
-    </div>
-  </div>
-)}
 
   </div>
 )}
