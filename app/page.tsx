@@ -1167,19 +1167,17 @@ const cleaned = current.filter(
   <div className="text-sm text-gray-400 mb-2">
     Room Link
   </div>
-  <div className="text-sm text-gray-400 mb-2">
-  </div>
 
   <div className="bg-black border border-gray-700 rounded p-3 flex justify-between items-center">
     <span className="text-green-400">
-{`https://coffeehub.com/r/${selectedRoom.shareToken}`}
+      {`https://coffeehub-terminal-b6d0.vercel.app/r/${selectedRoom.shareToken}`}
     </span>
 
     <button
       onClick={() => {
         navigator.clipboard.writeText(
-  `https://coffeehub.com/r/${selectedRoom.shareToken}`
-);
+          `https://coffeehub-terminal-b6d0.vercel.app/r/${selectedRoom.shareToken}`
+        );
         alert("Room link copied");
       }}
       className="bg-green-500 text-black px-3 py-1 rounded font-bold"
@@ -1188,7 +1186,6 @@ const cleaned = current.filter(
     </button>
   </div>
 </div>
-    </div>
 
     <div className="mb-2">
       <strong>Status:</strong> {selectedRoom.status}
