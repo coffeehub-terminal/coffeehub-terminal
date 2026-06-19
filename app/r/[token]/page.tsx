@@ -3,10 +3,8 @@ import { supabase } from "@/lib/supabase";
 export default async function RoomPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ token: string }>;
 }) {
-  const { id } = await params;
-
   const { token } = await params;
 
 const { data: room } = await supabase
@@ -39,7 +37,7 @@ const { data: room } = await supabase
         <div className="bg-[#10231e] rounded-xl p-8">
 
           <h2 className="text-3xl font-bold mb-2">
-            {room?.name || id}
+            {room?.name || "Room"}
           </h2>
 
           <div className="text-gray-400 mb-2">
