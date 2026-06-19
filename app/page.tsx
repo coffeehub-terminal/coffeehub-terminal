@@ -99,24 +99,9 @@ useEffect(() => {
 }));
 
 setLots(formattedLots);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    }
+  };
+  
   const loadOffers = async () => {
     const { data, error } = await supabase
       .from("Offers")
