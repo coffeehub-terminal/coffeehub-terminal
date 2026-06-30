@@ -471,7 +471,9 @@ offerIds: selectedOfferIds,
     status: "Draft",
   };
 
-  const { error } = await supabase
+  const shareToken = crypto.randomUUID();
+
+const { error } = await supabase
   .from("Rooms")
   .insert([
     {
@@ -479,7 +481,7 @@ offerIds: selectedOfferIds,
       name: room.name,
       offer_ids: room.offerIds.join(","),
       status: room.status,
-      share_token: crypto.randomUUID(),
+      share_token: shareToken,
     },
   ]);
 
@@ -488,7 +490,8 @@ if (error) {
   return;
 }
 
-loadRooms();
+await loadRooms();
+
 if (participantEmail) {
   await supabase
     .from("RoomParticipants")
@@ -500,8 +503,21 @@ if (participantEmail) {
         status: "invited",
       },
     ]);
+
+  await fetch("/api/send-room-email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: participantEmail,
+      roomName: room.name,
+      shareToken,
+    }),
+  });
 }
 
+ 
   setNewRoomName("");
   setShowRoomForm(false);
 };
@@ -1154,13 +1170,11 @@ const cleaned = current.filter(
     </h4>
 
     <div className="mb-2">
-      <strong>Name:</strong> {selectedRoom.name}
-    </div>
+  <strong>Name:</strong> {selectedRoom.name}
+</div>
 
-    <div className="mb-2">
-      <strong>ID:</strong> {selectedRoom.id}
-      <div className="mb-2">
-  
+<div className="mb-2">
+  <strong>ID:</strong> {selectedRoom.id}
 </div>
 
 <div className="my-6">
@@ -1170,14 +1184,14 @@ const cleaned = current.filter(
 
   <div className="bg-black border border-gray-700 rounded p-3 flex justify-between items-center">
     <span className="text-green-400">
-      {`https://coffeehub-terminal-b6d0.vercel.app/r/${selectedRoom.shareToken}`}
+      {`https://app.coffeehubcolombia.com/r/${selectedRoom.shareToken}`}
     </span>
 
     <button
       onClick={() => {
         navigator.clipboard.writeText(
-          `https://coffeehub-terminal-b6d0.vercel.app/r/${selectedRoom.shareToken}`
-        );
+  `https://app.coffeehubcolombia.com/r/${selectedRoom.shareToken}`
+);
         alert("Room link copied");
       }}
       className="bg-green-500 text-black px-3 py-1 rounded font-bold"
