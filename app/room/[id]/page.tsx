@@ -8,19 +8,26 @@ export default async function RoomPage({
   const { id } = await params;
 
   const { data: room } = await supabase
-    .from("Rooms")
-    .select("*")
-    .eq("id", id)
-    .single();
+  .from("Rooms")
+  .select("*")
+  .eq("share_token", id)
+  .single();
 
   const { data: participants } = await supabase
     .from("RoomParticipants")
     .select("*")
     .eq("room_id", id);
 
-  const { data: offers } = await supabase
-    .from("Offers")
-    .select("*");
+  const offerIds =
+  room?.offer_ids
+    ?.split(",")
+    .map((id: string) => id.trim())
+    .filter(Boolean) || [];
+
+const { data: offers } = await supabase
+  .from("Offers")
+  .select("*")
+  .in("id", offerIds);
 
   return (
     <main className="min-h-screen bg-[#071412] text-white p-10">
