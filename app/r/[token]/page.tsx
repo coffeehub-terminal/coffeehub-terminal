@@ -14,8 +14,7 @@ const { data: room } = await supabase
   .select("*")
   .eq("share_token", token)
   .single();
-  console.log("TOKEN:", token);
-console.log("ROOM:", room);
+ 
 
   const { data: participants } = await supabase
     .from("RoomParticipants")
@@ -27,13 +26,13 @@ console.log("ROOM:", room);
     ?.split(",")
     .map((id: string) => id.trim())
     .filter(Boolean) || [];
-    console.log("OFFER IDS:", offerIds);
+    
 
 const { data: offers } = await supabase
   .from("Offers")
   .select("*")
   .in("id", offerIds);
-  console.log("OFFERS RETURNED:", offers?.map(o => o.id));
+  
 
   return (
     <main className="min-h-screen bg-[#071412] text-white p-10">
@@ -44,8 +43,8 @@ const { data: offers } = await supabase
         </h1>
 
         <div className="text-green-400 mb-10">
-          Buyer Portal - VERSION 2
-        </div>
+  Buyer Portal
+</div>
 
         <div className="bg-[#10231e] rounded-xl p-8">
 
@@ -85,8 +84,8 @@ const { data: offers } = await supabase
               <div className="text-gray-400 text-sm">
                 Offers
               </div>
-              <div className="text-2xl font-bold text-red-500">
-  TOKEN PAGE - {offers?.length || 0}
+              <div className="text-2xl font-bold">
+  {offers?.length}
 </div>
             </div>
 
