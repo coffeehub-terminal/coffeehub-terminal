@@ -1,0 +1,1 @@
+Check .env.local contains RESEND_API_KEY
