@@ -1,9 +1,9 @@
 "use client"
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { Suspense,  useSearchParams } from "next/navigation";
+import { Suspense,  useEffect, useState } from "react"
+import { Suspense,  supabase } from "@/lib/supabase"
 import Link from "next/link"
-export default function POPage(){
+function POPageInner(){
     const searchParams = useSearchParams();
   const roomFilter = searchParams.get('room');
   const [pos,setPos]=useState<any[]>([]); const [sel,setSel]=useState<any>(null); const [form,setForm]=useState({status:"Pending",quantity:"1",price:""})
@@ -24,4 +24,9 @@ export default function POPage(){
       </div>
     </div>
   )
+}
+
+export const dynamic = "force-dynamic"
+export default function POPage(){
+  return <Suspense fallback={<div>Loading...</div>}><POPageInner /></Suspense>
 }

@@ -1,9 +1,9 @@
 "use client"
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { Suspense,  useSearchParams } from "next/navigation";
+import { Suspense,  useEffect, useState } from "react"
+import { Suspense,  supabase } from "@/lib/supabase"
 import Link from "next/link"
-export default function ContractsPage(){
+function ContractsPageInner(){
     const searchParams = useSearchParams();
   const roomFilter = searchParams.get('room');
   const [list,setList]=useState<any[]>([]); const [sel,setSel]=useState<any>(null)
@@ -41,4 +41,9 @@ export default function ContractsPage(){
       </div>
     </div>
   )
+}
+
+export const dynamic = "force-dynamic"
+export default function ContractsPage(){
+  return <Suspense fallback={<div>Loading...</div>}><ContractsPageInner /></Suspense>
 }
