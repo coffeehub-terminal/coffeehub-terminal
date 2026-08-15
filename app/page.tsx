@@ -81,54 +81,39 @@ export default function Home(){
 
   return (
     <div className="min-h-screen bg-[#fbfaf8]">
-      {/* PROFESSIONAL HEADER - NO CAROUSEL */}
+      {/* HEADER - NUKED CAROUSEL */}
       <header className="border-b bg-white sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2 shrink-0">
-            <img src="/coffeehub-logo.png" alt="CoffeeHub" className="h-6 w-auto object-contain" />
-            <span className="text- px-2 py-1 rounded-full border bg-[#fbfaf8]">Seller • Green OS</span>
+        <div className="max-w-6xl mx-auto px-4 h- flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <img src="/coffeehub-logo.png" alt="CoffeeHub" className="h-6 w-auto" />
+            <span className="text- px-2 py-1 rounded-full border bg-[#fbfaf8]">Seller</span>
           </div>
-
-          {/* Desktop */}
-          <div className="hidden md:flex gap-2">
-            <Link href="/contracts" className="px-3 py-1.5 rounded-full border bg-white text-xs">Contracts <span className="ml-1 bg-black text-white px-1.5 rounded-full text-">{contracts.filter(c=>c.status==="Draft").length || 14}</span></Link>
-            <Link href="/purchase-orders" className="px-3 py-1.5 rounded-full border bg-white text-xs">POs {newPOs>0 && <span className="ml-1 bg-green-500 text-white px-1.5 rounded-full text-">+{newPOs}</span>}</Link>
-            <Link href="/logistics" className="px-3 py-1.5 rounded-full border bg-white text-xs">Logistics</Link>
-            <Link href="/samples" className="px-3 py-1.5 rounded-full border border-black bg-white text-xs">Samples {newSamples>0 && <span className="ml-1 bg-green-500 text-white px-1.5 rounded-full text-">+{newSamples}</span>}</Link>
-          </div>
-
-          {/* Mobile - pro More menu */}
-          <div className="flex md:hidden items-center gap-2">
-            <Link href="/contracts" className="px-3 py-1.5 rounded-full border bg-white text-xs">Contracts</Link>
-            <Link href="/samples" className="px-3 py-1.5 rounded-full border border-black bg-white text-xs">Samples {newSamples>0 && <span className="ml-1 bg-green-500 text-white px-1.5 rounded-full text-">+{newSamples}</span>}</Link>
-            <details className="relative">
-              <summary className="list-none px-3 py-1.5 rounded-full border bg-[#fbfaf8] text-xs cursor-pointer select-none">•••</summary>
-              <div className="absolute right-0 top-10 w-52 bg-white border rounded-xl shadow-xl p-2 flex flex-col gap-1 z-50">
-                <Link href="/purchase-orders" className="px-3 py-2.5 rounded-lg hover:bg-neutral-50 text-sm flex justify-between">Purchase Orders {newPOs>0 && <span className="bg-green-500 text-white px-1.5 rounded-full text-">+{newPOs}</span>}</Link>
-                <Link href="/logistics" className="px-3 py-2.5 rounded-lg hover:bg-neutral-50 text-sm">Logistics</Link>
-                <Link href="/contracts" className="px-3 py-2.5 rounded-lg hover:bg-neutral-50 text-sm md:hidden">Contracts</Link>
-              </div>
-            </details>
-          </div>
+          <nav className="flex items-center gap-2">
+            <Link href="/contracts" className="hidden sm:inline-flex px-3 py-1.5 rounded-full border bg-white text-xs">Contracts {contracts.filter(c=>c.status==="Draft").length>0 && <span className="ml-1 bg-black text-white px-1.5 rounded-full text-">{contracts.filter(c=>c.status==="Draft").length}</span>}</Link>
+            <Link href="/purchase-orders" className="hidden sm:inline-flex px-3 py-1.5 rounded-full border bg-white text-xs">POs {newPOs>0 && <span className="ml-1 bg-green-500 text-white px-1.5 rounded-full text-">+{newPOs}</span>}</Link>
+            <Link href="/logistics" className="hidden sm:inline-flex px-3 py-1.5 rounded-full border bg-white text-xs">Logistics</Link>
+            <Link href="/samples" className="inline-flex px-3 py-1.5 rounded-full border border-black bg-white text-xs">Samples {newSamples>0 && <span className="ml-1 bg-green-500 text-white px-1.5 rounded-full text-">+{newSamples}</span>}</Link>
+            <Link href="/contracts" className="sm:hidden inline-flex px-3 py-1.5 rounded-full border bg-white text-xs">Contracts</Link>
+          </nav>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+      <main className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex justify-between items-start gap-3 mb-6">
-          <div className="min-w-0">
-            <h1 className="text-xl font-bold tracking-tight">Your green coffee</h1>
-            <p className="text-xs text-neutral-500 mt-1">List it, share a private room, move it.</p>
+          <div>
+            <h1 className="text-xl font-bold">Your green coffee</h1>
+            <p className="text-xs text-neutral-500 mt-1">List it, share a room, move it.</p>
           </div>
-          <div className="flex gap-2 shrink-0">
-            <button onClick={()=>setShowLotModal(true)} className="whitespace-nowrap px-4 py-2 rounded-full bg-black text-white text-xs">+ New lot</button>
-            <button onClick={()=>setShowRoomModal(true)} className="whitespace-nowrap px-4 py-2 rounded-full bg-white border text-xs">+ Buyer room</button>
+          <div className="flex gap-2">
+            <button onClick={()=>setShowLotModal(true)} className="px-4 py-2 rounded-full bg-black text-white text-xs">+ New lot</button>
+            <button onClick={()=>setShowRoomModal(true)} className="px-4 py-2 rounded-full bg-white border text-xs">+ Buyer room</button>
           </div>
         </div>
 
-        <div className="flex gap-5 border-b mb-6">
-          <button onClick={()=>setActiveScreen("inventory")} className={`pb-3 text-sm flex items-center gap-2 whitespace-nowrap ${activeScreen==="inventory"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Inventory <span className={`px-2 py-0.5 rounded text-xs ${activeScreen==="inventory"? "bg-black text-white" : "bg-neutral-100"}`}>{lots.length}</span></button>
-          <button onClick={()=>setActiveScreen("offers")} className={`pb-3 text-sm flex items-center gap-2 whitespace-nowrap ${activeScreen==="offers"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Offers <span className={`px-2 py-0.5 rounded text-xs ${activeScreen==="offers"? "bg-black text-white" : "bg-neutral-100"}`}>{offers.length}</span></button>
-          <button onClick={()=>setActiveScreen("rooms")} className={`pb-3 text-sm flex items-center gap-2 whitespace-nowrap ${activeScreen==="rooms"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Buyer rooms <span className={`px-2 py-0.5 rounded text-xs ${activeScreen==="rooms"? "bg-black text-white" : "bg-neutral-100"}`}>{rooms.length}</span></button>
+        <div className="flex gap-6 border-b mb-6">
+          <button onClick={()=>setActiveScreen("inventory")} className={`pb-3 text-sm flex gap-2 ${activeScreen==="inventory"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Inventory <span className={`px-2 py-0.5 rounded text-xs ${activeScreen==="inventory"? "bg-black text-white" : "bg-neutral-100"}`}>{lots.length}</span></button>
+          <button onClick={()=>setActiveScreen("offers")} className={`pb-3 text-sm flex gap-2 ${activeScreen==="offers"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Offers <span className={`px-2 py-0.5 rounded text-xs ${activeScreen==="offers"? "bg-black text-white" : "bg-neutral-100"}`}>{offers.length}</span></button>
+          <button onClick={()=>setActiveScreen("rooms")} className={`pb-3 text-sm flex gap-2 ${activeScreen==="rooms"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Rooms <span className={`px-2 py-0.5 rounded text-xs ${activeScreen==="rooms"? "bg-black text-white" : "bg-neutral-100"}`}>{rooms.length}</span></button>
         </div>
 
         {activeScreen==="inventory" && (
@@ -136,53 +121,17 @@ export default function Home(){
             <div className="px-4 py-3 border-b flex justify-between text-xs"><span className="text-neutral-500">Lots in warehouse</span><span className="text-neutral-400">{lots.length} lots</span></div>
             {lots.map((lot:any)=>(
               <Link href={`/lot/${lot.id}`} key={String(lot.id)} className="flex items-center justify-between px-4 py-3 border-b last:border-0 hover:bg-[#fbfaf8]">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 bg-[#fbfaf8] border rounded-xl flex items-center justify-center text- shrink-0">{getFlag(lot.origin||"")}</div>
-                  <div className="min-w-0">
-                    <div className="text- font-medium truncate">{lot.lot_number} • {lot.origin} {lot.score && <span className="ml-2 px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-">{lot.score}</span>}</div>
-                    <div className="text- text-neutral-400 truncate">{lot.Company||""} • {lot.farm||"-"} • {lot.variety||"-"} • {lot.required_bags||"?"} bags</div>
-                  </div>
-                </div>
-                <div className="text- shrink-0 ml-3">${lot.price_per_kg}/kg</div>
+                <div className="flex items-center gap-3"><div className="w-9 h-9 bg-[#fbfaf8] border rounded-xl flex items-center justify-center text-">{getFlag(lot.origin||"")}</div><div><div className="text- font-medium">{lot.lot_number} • {lot.origin} {lot.score && <span className="ml-2 px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-">{lot.score}</span>}</div><div className="text- text-neutral-400">{lot.Company||""} • {lot.farm||"-"} • {lot.variety||"-"} • {lot.required_bags||"?"} bags</div></div></div><div className="text-">${lot.price_per_kg}/kg</div>
               </Link>
             ))}
           </div>
         )}
-
-        {activeScreen==="offers" && (
-          <div className="bg-white rounded-xl border overflow-hidden">
-            <div className="px-4 py-3 border-b text-xs text-neutral-500">Offers • {offers.length}</div>
-            {offers.map((o:any)=>(
-              <div key={String(o.id)} className="flex items-center justify-between px-4 py-3 border-b last:border-0">
-                <div className="min-w-0"><div className="text- font-medium truncate">{o.lot_number} • {o.company_name||"CoffeeHub"} • ${o.price_per_kg}/kg</div><div className="text- text-neutral-400 truncate">{o.farm||""} • {o.origin} • {String(o.id).slice(0,12)}</div></div>
-                <span className="text- px-2 py-1 bg-neutral-100 rounded-full shrink-0 ml-3">{o.status||"Open"}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {activeScreen==="rooms" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {rooms.map((r:any)=>(
-              <div key={String(r.id)} className="bg-white rounded-xl border p-4 flex flex-col">
-                <div className="flex justify-between items-start gap-2 mb-2">
-                  <span className="text- font-medium leading-tight line-clamp-2">{r.name} • {r.id}</span>
-                  <span className="text- px-2 py-0.5 border rounded-full shrink-0 whitespace-nowrap">{r.status}</span>
-                </div>
-                <div className="text- text-neutral-400 mb-4">{(r.offer_ids||"").split(",").filter(Boolean).length} lots • {r.id}</div>
-                <div className="flex gap-2 mt-auto flex-wrap">
-                  <button onClick={()=>navigator.clipboard.writeText(`${window.location.origin}/r/${r.share_token}`)} className="whitespace-nowrap px-3 py-1.5 rounded-full bg-black text-white text-">Copy link</button>
-                  <Link href={`/room/${r.id}`} className="whitespace-nowrap px-3 py-1.5 rounded-full border bg-white text-">Edit Room →</Link>
-                  <Link href={`/r/${r.share_token}`} className="whitespace-nowrap px-3 py-1.5 rounded-full border text- bg-[#fbfaf8]">Buyer →</Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {activeScreen==="offers" && (<div className="bg-white rounded-xl border overflow-hidden"><div className="px-4 py-3 border-b text-xs text-neutral-500">Offers • {offers.length}</div>{offers.map((o:any)=>(<div key={String(o.id)} className="flex items-center justify-between px-4 py-3 border-b last:border-0"><div><div className="text- font-medium">{o.lot_number} • {o.company_name||"CoffeeHub"} • ${o.price_per_kg}/kg</div><div className="text- text-neutral-400">{o.farm||""} • {o.origin}</div></div><span className="text- px-2 py-1 bg-neutral-100 rounded-full">{o.status||"Open"}</span></div>))}</div>)}
+        {activeScreen==="rooms" && (<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">{rooms.map((r:any)=>(<div key={String(r.id)} className="bg-white rounded-xl border p-4"><div className="flex justify-between mb-2"><span className="text- font-medium">{r.name} • {r.id}</span><span className="text- px-2 py-0.5 border rounded-full">{r.status}</span></div><div className="text- text-neutral-400 mb-3">{(r.offer_ids||"").split(",").filter(Boolean).length} lots</div><div className="flex gap-2"><button onClick={()=>navigator.clipboard.writeText(`${window.location.origin}/r/${r.share_token}`)} className="px-3 py-1.5 rounded-full bg-black text-white text-">Copy link</button><Link href={`/room/${r.id}`} className="px-3 py-1.5 rounded-full border bg-white text-">Edit</Link><Link href={`/r/${r.share_token}`} className="px-3 py-1.5 rounded-full border bg-[#fbfaf8] text-">Buyer</Link></div></div>))}</div>)}
       </main>
 
-      {showLotModal && (<div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50"><div className="bg-white rounded-2xl w-full max-w-lg max-h- overflow-auto p-6"><h2 className="font-semibold mb-4">New lot - 17 fields</h2><div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><input placeholder="Company" value={form.Company} onChange={e=>setForm({...form,Company:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="lot_reference" value={form.lot_reference} onChange={e=>setForm({...form,lot_reference:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="lot_number *" value={form.lot_number} onChange={e=>setForm({...form,lot_number:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="origin *" value={form.origin} onChange={e=>setForm({...form,origin:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="process" value={form.process} onChange={e=>setForm({...form,process:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="score" type="number" value={form.score} onChange={e=>setForm({...form,score:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="price_per_kg *" type="number" value={form.price_per_kg} onChange={e=>setForm({...form,price_per_kg:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="harvest_year" type="number" value={form.harvest_year} onChange={e=>setForm({...form,harvest_year:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="required_bags" type="number" value={form.required_bags} onChange={e=>setForm({...form,required_bags:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="certifications" value={form.certifications} onChange={e=>setForm({...form,certifications:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="photo_url" value={form.photo_url} onChange={e=>setForm({...form,photo_url:e.target.value})} className="border rounded-full px-3 py-2 text-sm col-span-1 sm:col-span-2"/><input placeholder="variety" value={form.variety} onChange={e=>setForm({...form,variety:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="farm" value={form.farm} onChange={e=>setForm({...form,farm:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="producer" value={form.producer} onChange={e=>setForm({...form,producer:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="altitude" type="number" value={form.altitude} onChange={e=>setForm({...form,altitude:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="cup_notes" value={form.cup_notes} onChange={e=>setForm({...form,cup_notes:e.target.value})} className="border rounded-full px-3 py-2 text-sm col-span-1 sm:col-span-2"/></div><div className="flex justify-end gap-2 mt-4"><button onClick={()=>setShowLotModal(false)} className="px-4 py-2 rounded-full border text-sm">Cancel</button><button disabled={saving} onClick={createLot} className="px-4 py-2 rounded-full bg-black text-white text-sm">{saving? "Saving..." : "Create lot + offer"}</button></div></div></div>)}
-      {showRoomModal && (<div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-[100]"><div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border overflow-hidden flex flex-col" style={{maxHeight:'90vh'}}><div className="p-6 pb-4 shrink-0 border-b"><h2 className="font-semibold">New buyer room</h2><div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4"><input autoFocus placeholder="Room name *" value={roomForm.name} onChange={e=>setRoomForm({...roomForm,name:e.target.value})} className="border rounded-full px-4 py-2.5 text-sm"/><input placeholder="Buyer email" type="email" value={roomForm.email} onChange={e=>setRoomForm({...roomForm,email:e.target.value})} className="border rounded-full px-4 py-2.5 text-sm"/></div></div><div className="px-6 py-3 shrink-0 bg-[#fbfaf8] border-b"><input placeholder="🔍 Search offers" value={offerSearch} onChange={e=>setOfferSearch(e.target.value)} className="w-full bg-white border rounded-full px-4 py-2 text-sm"/><div className="text- text-neutral-400 mt-2">{roomForm.selectedOffers.length} selected</div></div><div className="flex-1 min-h-0 overflow-y-auto divide-y" style={{maxHeight:'280px'}}>{filteredOffers.map((o:any)=>{const checked=roomForm.selectedOffers.includes(o.id);return(<label key={String(o.id)} className={`flex items-center gap-3 px-6 py-3 text-sm cursor-pointer hover:bg-[#fbfaf8] ${checked? "bg-green-50/60" : ""}`}><input type="checkbox" checked={checked} onChange={e=>{if(e.target.checked) setRoomForm({...roomForm,selectedOffers:[...roomForm.selectedOffers,o.id]}); else setRoomForm({...roomForm,selectedOffers:roomForm.selectedOffers.filter(id=>id!==o.id)})}}/><div className="flex-1"><div className="font-medium text-">{o.lot_number} • {o.origin} • ${o.price_per_kg}/kg</div><div className="text- text-neutral-400">{o.farm||""} • {String(o.id).slice(0,12)}</div></div></label>)})}</div><div className="p-4 border-t flex justify-end gap-2 shrink-0 bg-white"><button onClick={()=>setShowRoomModal(false)} className="px-4 py-2 rounded-full border text-sm">Cancel</button><button disabled={sending} onClick={createRoom} className="px-5 py-2 rounded-full bg-black text-white text-sm">Create room + email</button></div></div></div>)}
+      {showLotModal && (<div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50"><div className="bg-white rounded-2xl w-full max-w-lg max-h- overflow-auto p-6"><h2 className="font-semibold mb-4">New lot</h2><div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><input placeholder="Company" value={form.Company} onChange={e=>setForm({...form,Company:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="lot_number *" value={form.lot_number} onChange={e=>setForm({...form,lot_number:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="origin *" value={form.origin} onChange={e=>setForm({...form,origin:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="price_per_kg *" type="number" value={form.price_per_kg} onChange={e=>setForm({...form,price_per_kg:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="farm" value={form.farm} onChange={e=>setForm({...form,farm:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/><input placeholder="score" type="number" value={form.score} onChange={e=>setForm({...form,score:e.target.value})} className="border rounded-full px-3 py-2 text-sm"/></div><div className="flex justify-end gap-2 mt-4"><button onClick={()=>setShowLotModal(false)} className="px-4 py-2 rounded-full border text-sm">Cancel</button><button disabled={saving} onClick={createLot} className="px-4 py-2 rounded-full bg-black text-white text-sm">{saving? "Saving..." : "Create"}</button></div></div></div>)}
+      {showRoomModal && (<div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-[100]"><div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border overflow-hidden flex flex-col" style={{maxHeight:'90vh'}}><div className="p-6 border-b"><h2 className="font-semibold">New buyer room</h2><div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4"><input autoFocus placeholder="Room name *" value={roomForm.name} onChange={e=>setRoomForm({...roomForm,name:e.target.value})} className="border rounded-full px-4 py-2.5 text-sm"/><input placeholder="Buyer email" value={roomForm.email} onChange={e=>setRoomForm({...roomForm,email:e.target.value})} className="border rounded-full px-4 py-2.5 text-sm"/></div></div><div className="px-6 py-3 bg-[#fbfaf8] border-b"><input placeholder="Search offers" value={offerSearch} onChange={e=>setOfferSearch(e.target.value)} className="w-full bg-white border rounded-full px-4 py-2 text-sm"/></div><div className="flex-1 overflow-y-auto divide-y" style={{maxHeight:'280px'}}>{filteredOffers.map((o:any)=>{const checked=roomForm.selectedOffers.includes(o.id);return(<label key={String(o.id)} className={`flex items-center gap-3 px-6 py-3 text-sm cursor-pointer ${checked? "bg-green-50/60" : ""}`}><input type="checkbox" checked={checked} onChange={e=>{if(e.target.checked) setRoomForm({...roomForm,selectedOffers:[...roomForm.selectedOffers,o.id]}); else setRoomForm({...roomForm,selectedOffers:roomForm.selectedOffers.filter(id=>id!==o.id)})}}/><div><div className="font-medium text-">{o.lot_number} • {o.origin}</div><div className="text- text-neutral-400">{o.farm||""}</div></div></label>)})}</div><div className="p-4 border-t flex justify-end gap-2 bg-white"><button onClick={()=>setShowRoomModal(false)} className="px-4 py-2 rounded-full border text-sm">Cancel</button><button disabled={sending} onClick={createRoom} className="px-5 py-2 rounded-full bg-black text-white text-sm">Create</button></div></div></div>)}
     </div>
   )
 }
