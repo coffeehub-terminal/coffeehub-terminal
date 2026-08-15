@@ -81,24 +81,39 @@ export default function Home(){
 
   return (
     <div className="min-h-screen bg-[#fbfaf8]">
-      {/* HEADER - FIXED: no more circles */}
+      {/* PROFESSIONAL HEADER - NO CAROUSEL */}
       <header className="border-b bg-white sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2 shrink-0">
             <img src="/coffeehub-logo.png" alt="CoffeeHub" className="h-6 w-auto object-contain" />
-            <span className="text- px-2 py-1 rounded-full border bg-[#fbfaf8] whitespace-nowrap">Seller • Green OS</span>
+            <span className="text- px-2 py-1 rounded-full border bg-[#fbfaf8]">Seller • Green OS</span>
           </div>
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-            <Link href="/contracts" className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full border bg-white text-xs">Contracts {contracts.filter(c=>c.status==="Draft").length>0 && <span className="ml-1 px-1.5 py-0.5 bg-black text-white rounded-full text-">{contracts.filter(c=>c.status==="Draft").length}</span>}</Link>
-            <Link href="/purchase-orders" className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full border bg-white text-xs">POs {newPOs>0 && <span className="ml-1 px-1.5 py-0.5 bg-green-500 text-white rounded-full text-">+{newPOs}</span>}</Link>
-            <Link href="/logistics" className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full border bg-white text-xs">Logistics</Link>
-            <Link href="/samples" className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full border border-black bg-white text-xs">Samples {newSamples>0 && <span className="ml-1 px-1.5 py-0.5 bg-green-500 text-white rounded-full text-">+{newSamples}</span>}</Link>
+
+          {/* Desktop */}
+          <div className="hidden md:flex gap-2">
+            <Link href="/contracts" className="px-3 py-1.5 rounded-full border bg-white text-xs">Contracts <span className="ml-1 bg-black text-white px-1.5 rounded-full text-">{contracts.filter(c=>c.status==="Draft").length || 14}</span></Link>
+            <Link href="/purchase-orders" className="px-3 py-1.5 rounded-full border bg-white text-xs">POs {newPOs>0 && <span className="ml-1 bg-green-500 text-white px-1.5 rounded-full text-">+{newPOs}</span>}</Link>
+            <Link href="/logistics" className="px-3 py-1.5 rounded-full border bg-white text-xs">Logistics</Link>
+            <Link href="/samples" className="px-3 py-1.5 rounded-full border border-black bg-white text-xs">Samples {newSamples>0 && <span className="ml-1 bg-green-500 text-white px-1.5 rounded-full text-">+{newSamples}</span>}</Link>
+          </div>
+
+          {/* Mobile - pro More menu */}
+          <div className="flex md:hidden items-center gap-2">
+            <Link href="/contracts" className="px-3 py-1.5 rounded-full border bg-white text-xs">Contracts</Link>
+            <Link href="/samples" className="px-3 py-1.5 rounded-full border border-black bg-white text-xs">Samples {newSamples>0 && <span className="ml-1 bg-green-500 text-white px-1.5 rounded-full text-">+{newSamples}</span>}</Link>
+            <details className="relative">
+              <summary className="list-none px-3 py-1.5 rounded-full border bg-[#fbfaf8] text-xs cursor-pointer select-none">•••</summary>
+              <div className="absolute right-0 top-10 w-52 bg-white border rounded-xl shadow-xl p-2 flex flex-col gap-1 z-50">
+                <Link href="/purchase-orders" className="px-3 py-2.5 rounded-lg hover:bg-neutral-50 text-sm flex justify-between">Purchase Orders {newPOs>0 && <span className="bg-green-500 text-white px-1.5 rounded-full text-">+{newPOs}</span>}</Link>
+                <Link href="/logistics" className="px-3 py-2.5 rounded-lg hover:bg-neutral-50 text-sm">Logistics</Link>
+                <Link href="/contracts" className="px-3 py-2.5 rounded-lg hover:bg-neutral-50 text-sm md:hidden">Contracts</Link>
+              </div>
+            </details>
           </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-        {/* TITLE ROW - FIXED: no more circles */}
         <div className="flex justify-between items-start gap-3 mb-6">
           <div className="min-w-0">
             <h1 className="text-xl font-bold tracking-tight">Your green coffee</h1>
@@ -110,10 +125,10 @@ export default function Home(){
           </div>
         </div>
 
-        <div className="flex gap-5 border-b mb-6 overflow-x-auto scrollbar-hide">
-          <button onClick={()=>setActiveScreen("inventory")} className={`pb-3 text-sm flex items-center gap-2 shrink-0 whitespace-nowrap ${activeScreen==="inventory"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Inventory <span className={`px-2 py-0.5 rounded text-xs ${activeScreen==="inventory"? "bg-black text-white" : "bg-neutral-100"}`}>{lots.length}</span></button>
-          <button onClick={()=>setActiveScreen("offers")} className={`pb-3 text-sm flex items-center gap-2 shrink-0 whitespace-nowrap ${activeScreen==="offers"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Offers <span className={`px-2 py-0.5 rounded text-xs ${activeScreen==="offers"? "bg-black text-white" : "bg-neutral-100"}`}>{offers.length}</span></button>
-          <button onClick={()=>setActiveScreen("rooms")} className={`pb-3 text-sm flex items-center gap-2 shrink-0 whitespace-nowrap ${activeScreen==="rooms"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Buyer rooms <span className={`px-2 py-0.5 rounded text-xs ${activeScreen==="rooms"? "bg-black text-white" : "bg-neutral-100"}`}>{rooms.length}</span></button>
+        <div className="flex gap-5 border-b mb-6">
+          <button onClick={()=>setActiveScreen("inventory")} className={`pb-3 text-sm flex items-center gap-2 whitespace-nowrap ${activeScreen==="inventory"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Inventory <span className={`px-2 py-0.5 rounded text-xs ${activeScreen==="inventory"? "bg-black text-white" : "bg-neutral-100"}`}>{lots.length}</span></button>
+          <button onClick={()=>setActiveScreen("offers")} className={`pb-3 text-sm flex items-center gap-2 whitespace-nowrap ${activeScreen==="offers"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Offers <span className={`px-2 py-0.5 rounded text-xs ${activeScreen==="offers"? "bg-black text-white" : "bg-neutral-100"}`}>{offers.length}</span></button>
+          <button onClick={()=>setActiveScreen("rooms")} className={`pb-3 text-sm flex items-center gap-2 whitespace-nowrap ${activeScreen==="rooms"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Buyer rooms <span className={`px-2 py-0.5 rounded text-xs ${activeScreen==="rooms"? "bg-black text-white" : "bg-neutral-100"}`}>{rooms.length}</span></button>
         </div>
 
         {activeScreen==="inventory" && (
@@ -146,7 +161,6 @@ export default function Home(){
           </div>
         )}
 
-        {/* BUYER ROOMS - FIXED: no more circles, proper grid */}
         {activeScreen==="rooms" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {rooms.map((r:any)=>(
@@ -156,7 +170,7 @@ export default function Home(){
                   <span className="text- px-2 py-0.5 border rounded-full shrink-0 whitespace-nowrap">{r.status}</span>
                 </div>
                 <div className="text- text-neutral-400 mb-4">{(r.offer_ids||"").split(",").filter(Boolean).length} lots • {r.id}</div>
-                <div className="flex gap-2 mt-auto">
+                <div className="flex gap-2 mt-auto flex-wrap">
                   <button onClick={()=>navigator.clipboard.writeText(`${window.location.origin}/r/${r.share_token}`)} className="whitespace-nowrap px-3 py-1.5 rounded-full bg-black text-white text-">Copy link</button>
                   <Link href={`/room/${r.id}`} className="whitespace-nowrap px-3 py-1.5 rounded-full border bg-white text-">Edit Room →</Link>
                   <Link href={`/r/${r.share_token}`} className="whitespace-nowrap px-3 py-1.5 rounded-full border text- bg-[#fbfaf8]">Buyer →</Link>
