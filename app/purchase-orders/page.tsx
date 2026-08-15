@@ -1,33 +1,27 @@
-"use client";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import Link from "next/link";
-export default function POsPage(){
-  const [rows,setRows]=useState<any[]>([]); const [offers,setOffers]=useState<any>({}); const [rooms,setRooms]=useState<any>({});
-  const [selected,setSelected]=useState<any>(null); const [status,setStatus]=useState("Pending"); const [saving,setSaving]=useState(false);
-  useEffect(()=>{(async()=>{
-    const {data}=await supabase.from("PurchaseOrders").select("*").order("created_at",{ascending:false}).limit(100);
-    if(data){ setRows(data);
-      const offerIds=[...new Set(data.map((r:any)=>r.offer_id).filter(Boolean))];
-      const roomIds=[...new Set(data.map((r:any)=>r.room_id).filter(Boolean))];
-      if(offerIds.length){ const {data:od}=await supabase.from("Offers").select("*").in("id",offerIds); const m:any={}; od?.forEach((o:any)=>m[o.id]=o); setOffers(m); }
-      if(roomIds.length){ const {data:rd}=await supabase.from("Rooms").select("*").in("id",roomIds); const m:any={}; rd?.forEach((r:any)=>m[r.id]=r); setRooms(m); }
-    }
-  })();},[]);
-  const open=(po:any)=>{ setSelected(po); setStatus(po.status||"Pending"); };
-  const save=async()=>{ if(!selected) return; setSaving(true); const {error}=await supabase.from("PurchaseOrders").update({status}).eq("id",selected.id); setSaving(false); if(error) return alert(error.message); setSelected(null); const {data}=await supabase.from("PurchaseOrders").select("*").order("created_at",{ascending:false}).limit(100); if(data) setRows(data); };
-  const createContract=async()=>{
-    if(!selected) return;
-    // Contracts: id bigint auto, purchase_order_id text NO, room_id text NO, buyer_email, status, contract_number, price
-    const contract_number=`CTR-${Date.now().toString().slice(-6)}`;
-    const {data,error}=await supabase.from("Contracts").insert({purchase_order_id:String(selected.id),room_id:String(selected.room_id),buyer_email:selected.buyer_email||null,status:"Draft",contract_number,price:selected.price||null}).select().single();
-    if(error) return alert("Contracts: "+error.message);
-    alert(`Contract ${contract_number} created!`);
-    window.location.href="/contracts";
-  };
-  return <main className="min-h-screen bg-[#FBFBF9] p-6 max-w-[1080px] mx-auto"><div className="flex justify-between"><Link href="/" className="text-[12px] border bg-white px-3 py-1.5 rounded-full">← Seller OS</Link><h1 className="font-semibold">Purchase Orders • {rows.length}</h1><Link href="/contracts" className="text-[12px] border bg-white px-3 py-1.5 rounded-full">Contracts →</Link></div>
-  <div className="mt-6 grid md:grid-cols-3 gap-6"><div className="md:col-span-2 bg-white border rounded-[16px] divide-y overflow-hidden">
-    {rows.map((po:any)=>{ const o=offers[po.offer_id]; const r=rooms[po.room_id]; return <div key={String(po.id)} onClick={()=>open(po)} className={`p-4 cursor-pointer transition ${selected?.id===po.id?"bg-black text-white":""}`}><div className="flex justify-between"><span className="text-[13px] font-medium">{String(po.id).slice(0,8)} • {po.buyer_email||"-"} • {o?.lot_number||po.offer_id||"-"}</span><span className={`text-[10px] px-2 py-1 rounded-full ${selected?.id===po.id?"bg-white text-black":"bg-amber-50 border"}`}>{po.status}</span></div><div className={`text-[11px] mt-1 ${selected?.id===po.id?"text-white/60":"text-[#888]"}`}>Room {r?.name||po.room_id} • Qty {po.quantity||"?"} • ${po.price||"-"} • {new Date(po.created_at).toLocaleDateString()}</div></div>})}
-  </div>
-  <div className="bg-white border rounded-[16px] p-5 h-fit sticky top-6">{!selected?<div className="text-[12px] text-[#999] text-center py-10">← Select PO</div>:<div><h3 className="font-semibold text-[14px]">{String(selected.id).slice(0,8)}</h3><div className="mt-4 space-y-3"><div className="text-[11px] text-[#888]">Offer: {offers[selected.offer_id]?.lot_number||selected.offer_id}</div><select value={status} onChange={e=>setStatus(e.target.value)} className="w-full h-9 border rounded-full px-3 text-[13px]"><option>Pending</option><option>Requested</option><option>Accepted</option><option>Rejected</option><option>Contracted</option></select><button onClick={save} disabled={saving} className="w-full h-10 rounded-full bg-black text-white text-[13px]">{saving?"Saving...":"Save status"}</button><button onClick={createContract} className="w-full h-10 rounded-full border text-[13px]">Create Contract →</button><pre className="text-[10px] bg-[#F9F9F7] p-2 rounded-[8px] overflow-auto max-h-40">{JSON.stringify(selected,null,2)}</pre></div></div>}</div></div></main>;
+"use client"
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
+import Link from "next/link"
+export default function POPage(){
+    const searchParams = useSearchParams();
+  const roomFilter = searchParams.get('room');
+  const [pos,setPos]=useState<any[]>([]); const [sel,setSel]=useState<any>(null); const [form,setForm]=useState({status:"Pending",quantity:"1",price:""})
+  useEffect(()=>{(async()=>{ const {data}=await supabase.from("PurchaseOrders").select("*").order("created_at",{ascending:false}).limit(100); setPos(data||[]) })()},[])
+  const save=async()=>{ if(!sel) return; await supabase.from("PurchaseOrders").update(form).eq("id",sel.id); const {data}=await supabase.from("PurchaseOrders").select("*").order("created_at",{ascending:false}).limit(100); setPos(data||[]); alert(`PO ${String(sel.id).slice(0,8)} → ${form.status} - buyer in ${sel.room_id} sees +1`) }
+  return (
+    <div className="min-h-screen bg-white"><div className="border-b px-6 h- flex items-center justify-between"><Link href="/" className="px-4 py-1.5 rounded-full border text-sm">← Seller OS</Link><span className="font-semibold">Purchase Orders • {pos.length} {pos.filter(p=>p.status==="Pending").length>0 && <span className="ml-2 px-2 py-0.5 bg-green-500 text-white rounded-full text-xs">+{pos.filter(p=>p.status==="Pending").length} pending</span>}</span><Link href="/contracts" className="px-4 py-1.5 rounded-full border text-sm">Contracts →</Link></div>
+      <div className="grid grid-cols-2 h-[calc(100vh-56px)]">
+        <div className="border-r overflow-auto">{pos.map((p:any)=>(<div key={String(p.id)} onClick={()=>{setSel(p); setForm({status:p.status||"Pending",quantity:String(p.quantity||"1"),price:String(p.price||"")})}} className={`px-6 py-4 border-b cursor-pointer transition-all ${sel?.id===p.id? "bg-black text-white" : "hover:bg-[#fbfaf8] active:bg-black active:text-white"}`}><div className="text-sm">{p.buyer_email} • {p.room_id} • {String(p.offer_id).slice(0,12)} • Qty {p.quantity}</div><div className="text-xs mt-1 opacity-70">{p.room_id} • ${p.price} • {new Date(p.created_at).toLocaleDateString()} • {p.status}</div></div>))}</div>
+        <div className="p-6">
+          {sel? <div className="border rounded-2xl p-5 space-y-3"><h3 className="font-semibold">{sel.buyer_email} • {sel.room_id}</h3><p className="text-xs text-neutral-400">Offer: {sel.offer_id} • Room: {sel.room_id} • {sel.room_id}</p>
+            <div className="grid grid-cols-2 gap-3"><input type="number" placeholder="Quantity" value={form.quantity} onChange={e=>setForm({...form,quantity:e.target.value})} className="border rounded-full px-4 py-2.5 text-sm"/><input placeholder="Price" value={form.price} onChange={e=>setForm({...form,price:e.target.value})} className="border rounded-full px-4 py-2.5 text-sm"/></div>
+            <select value={form.status} onChange={e=>setForm({...form,status:e.target.value})} className="w-full border rounded-full px-4 py-2.5 text-sm"><option>Pending</option><option>Accepted</option><option>Rejected</option></select>
+            <button onClick={save} className="w-full py-3 rounded-full bg-black text-white text-sm font-medium hover:bg-neutral-800 active:scale-[0.98]">Save status - buyer sees +1</button>
+            <button onClick={async()=>{ const {data}=await supabase.from("Contracts").insert({purchase_order_id:sel.id, room_id:sel.room_id, buyer_email:sel.buyer_email, status:"Draft", contract_number:`CT-${String(sel.id).slice(0,8).toUpperCase()}`, price:sel.price}).select().single(); alert(`Contract ${data.contract_number} created for ${sel.room_id}`) }} className="w-full py-3 rounded-full border text-sm hover:bg-black hover:text-white transition-all">Create Contract →</button>
+          </div> : <div className="text-sm text-neutral-400 p-6 border rounded-2xl border-dashed text-center">← Select PO - black = selected, reactive</div>}
+        </div>
+      </div>
+    </div>
+  )
 }

@@ -1,11 +1,53 @@
-"use client";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import Link from "next/link";
+"use client"
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
+import Link from "next/link"
 export default function SamplesPage(){
-  const [rows,setRows]=useState<any[]>([]); const [selected,setSelected]=useState<any>(null); const [form,setForm]=useState<any>({}); const [saving,setSaving]=useState(false);
-  useEffect(()=>{(async()=>{ let {data,error}=await supabase.from("Samples").select("*").order("created_at",{ascending:false}).limit(100); if(error ||!data || data.length===0){ const {data:d2}=await supabase.from("SampleRequests").select("*").order("created_at",{ascending:false}).limit(100); if(d2) data=d2; } if(data) setRows(data); })();},[]);
-  const open=(s:any)=>{ setSelected(s); setForm({status:s.status||"Requested",courier:s.courier||"",tracking_number:s.tracking_number||s.tracking||""}); };
-  const save=async()=>{ if(!selected) return; setSaving(true); let {error}=await supabase.from("Samples").update({status:form.status,courier:form.courier,tracking_number:form.tracking_number}).eq("id",selected.id); if(error){ const {error:e2}=await supabase.from("SampleRequests").update({status:form.status}).eq("id",selected.id); error=e2; } setSaving(false); if(error) return alert(error.message); setSelected(null); const {data}=await supabase.from("Samples").select("*").order("created_at",{ascending:false}).limit(100); if(data) setRows(data); };
-  return <main className="min-h-screen bg-[#FBFBF9] p-6 max-w- mx-auto"><div className="flex justify-between"><Link href="/" className="text- border bg-white px-3 py-1.5 rounded-full">← Seller OS</Link><h1 className="font-semibold">Samples • {rows.length}</h1></div><div className="mt-6 grid md:grid-cols-3 gap-6"><div className="md:col-span-2 bg-white border rounded- divide-y overflow-hidden">{rows.map((s:any)=>{ const isSel=selected?.id===s.id; return <div key={String(s.id)} onClick={()=>open(s)} className={`p-4 cursor-pointer transition ${isSel?"bg-black text-white":"hover:bg-[#FAFAF8] text-black"}`}><div className="flex justify-between items-center"><span className="text- font-medium truncate">{String(s.id).slice(0,8)} • {s.room_id||s.offer_id||""} • {s.buyer_email||""}</span><span className={`text- px-2 py-1 rounded-full border shrink-0 ${isSel?"bg-white text-black border-white":"bg-[#FFFEF3] text-black"}`}>{s.status}</span></div><div className={`text- mt-1 ${isSel?"text-white/70":"text-[#888]"}`}>{s.courier||"-"} {s.tracking_number||""} • {s.created_at?new Date(s.created_at).toLocaleDateString():""}</div></div> })}</div><div className="bg-white border rounded- p-5 h-fit sticky top-6">{!selected?<div className="text- text-[#999] text-center py-10">← Select sample</div>:<div><h3 className="font-semibold text-">{String(selected.id).slice(0,8)}</h3><div className="mt-4 space-y-3"><select value={form.status} onChange={e=>setForm({...form,status:e.target.value})} className="w-full h-9 border rounded-full px-3 text-"><option>Requested</option><option>Preparing</option><option>Shipped</option><option>Delivered</option></select><input value={form.courier} onChange={e=>setForm({...form,courier:e.target.value})} placeholder="Courier" className="w-full h-9 border rounded-full px-3 text-" /><input value={form.tracking_number} onChange={e=>setForm({...form,tracking_number:e.target.value})} placeholder="Tracking #" className="w-full h-9 border rounded-full px-3 text-" /><button onClick={save} disabled={saving} className="w-full h-10 rounded-full bg-black text-white text-">{saving?"Saving...":"Save"}</button></div></div>}</div></div></main>;
+    const searchParams = useSearchParams();
+  const roomFilter = searchParams.get('room');
+  const [samples,setSamples]=useState<any[]>([])
+  const [selected,setSelected]=useState<any>(null)
+  const [form,setForm]=useState({courier:"",tracking_number:"",status:"Preparing",notes:"",shipped_at:"",delivered_at:""})
+  useEffect(()=>{(async()=>{ const {data}=await supabase.from("Samples").select("*").order("created_at",{ascending:false}).limit(100); setSamples(data||[]) })()},[])
+  const save=async()=>{
+    if(!selected) return
+    await supabase.from("Samples").update({...form}).eq("id",selected.id)
+    const {data}=await supabase.from("Samples").select("*").order("created_at",{ascending:false}).limit(100); setSamples(data||[])
+    alert(`Saved - buyer in ${selected.room_id} will see green bar move to ${form.status}`)
+  }
+  return (
+    <div className="min-h-screen bg-white"><div className="border-b px-6 h- flex items-center justify-between"><Link href="/" className="px-4 py-1.5 rounded-full border text-sm">← Seller OS</Link><span className="font-semibold">Samples • {samples.length} {samples.filter(s=>new Date(s.created_at)>new Date(Date.now()-86400000)).length>0 && <span className="ml-2 px-2 py-0.5 bg-green-500 text-white rounded-full text-xs">+{samples.filter(s=>new Date(s.created_at)>new Date(Date.now()-86400000)).length} new</span>}</span><span className="text-xs text-neutral-400">Email / Lot ref + Room</span></div>
+      <div className="grid grid-cols-2 h-[calc(100vh-56px)]">
+        <div className="border-r overflow-auto">
+          {samples.map((s:any)=>(
+            <div key={String(s.id)} onClick={()=>{setSelected(s); setForm({courier:s.courier||"",tracking_number:s.tracking_number||"",status:s.status||"Preparing",notes:s.notes||"",shipped_at:s.shipped_at||"",delivered_at:s.delivered_at||""})}} className={`px-6 py-4 border-b cursor-pointer transition-all ${selected?.id===s.id? "bg-black text-white" : "hover:bg-[#fbfaf8] active:bg-black active:text-white"}`}>
+              <div className="text-sm font-medium">{s.buyer_email} • {s.room_id} • {String(s.id).slice(0,8)}</div>
+              <div className="text-xs mt-1 opacity-70">{s.courier||"-"} {s.tracking_number||""} • {new Date(s.created_at).toLocaleDateString()} • <span className={`px-2 py-0.5 rounded-full border text-xs ${selected?.id===s.id? "bg-white text-black" : "bg-[#fbfaf8]"}`}>{s.status}</span></div>
+            </div>
+          ))}
+        </div>
+        <div className="p-6 overflow-auto">
+          {selected? (
+            <div className="border rounded-2xl p-5 space-y-4">
+              <div><h3 className="font-semibold">{String(selected.id).slice(0,8)} • {selected.buyer_email} • {selected.room_id}</h3><p className="text-xs text-neutral-400 mt-1">Room: {selected.room_id} • SampleReq: {String(selected.sample_request_id).slice(0,8)}</p></div>
+              <div className="space-y-3">
+                <label className="text-xs">Status - drives buyer green bar</label>
+                <select value={form.status} onChange={e=>setForm({...form,status:e.target.value})} className="w-full border rounded-full px-4 py-2.5 text-sm bg-white">
+                  <option>Preparing</option><option>Shipped</option><option>Delivered</option><option>Approved</option>
+                </select>
+                <input placeholder="Courier - DHL" value={form.courier} onChange={e=>setForm({...form,courier:e.target.value})} className="w-full border rounded-full px-4 py-2.5 text-sm"/>
+                <input placeholder="Tracking - 335 30303" value={form.tracking_number} onChange={e=>setForm({...form,tracking_number:e.target.value})} className="w-full border rounded-full px-4 py-2.5 text-sm"/>
+                <input type="date" value={form.shipped_at} onChange={e=>setForm({...form,shipped_at:e.target.value})} className="w-full border rounded-full px-4 py-2.5 text-sm"/>
+                <input type="date" value={form.delivered_at} onChange={e=>setForm({...form,delivered_at:e.target.value})} className="w-full border rounded-full px-4 py-2.5 text-sm"/>
+                <textarea placeholder="Notes" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} className="w-full border rounded-2xl px-4 py-3 text-sm h-20"/>
+                <button onClick={save} className="w-full py-3 rounded-full bg-black text-white text-sm font-medium hover:bg-neutral-800 active:scale-[0.98] transition-all">Save - buyer sees green bar move</button>
+                <div className="text- text-neutral-400 text-center">This updates buyer portal instantly via Realtime</div>
+              </div>
+            </div>
+          ) : <div className="text-sm text-neutral-400 p-6 border rounded-2xl border-dashed text-center">← Click a sample - black = selected, reactive</div>}
+        </div>
+      </div>
+    </div>
+  )
 }

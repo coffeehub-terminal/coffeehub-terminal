@@ -73,13 +73,12 @@ export default function BuyerPortal(){
   const CompactView = () => {
     if(!viewing) return null
     const d = viewing.data
-    // show only filled values, hide empty nulls that jammed your screenshot
     const entries = Object.entries(d).filter(([k,v])=>{
       if(!v) return false
       if(String(v).trim()==="" || String(v)==="—" ) return false
-      if(["id","room_id","purchase_order_id","contract_id"].includes(k)) return false // hide raw ids
+      if(["id","room_id","purchase_order_id","contract_id"].includes(k)) return false
       return true
-    }).slice(0,12) // max 12 lines so card stays small
+    }).slice(0,12)
     return (
       <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50" onClick={()=>setViewing(null)}>
         <div className="bg-white rounded-2xl w-full max-w- border shadow-xl overflow-hidden max-h- flex flex-col" onClick={e=>e.stopPropagation()}>
@@ -99,7 +98,17 @@ export default function BuyerPortal(){
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="border-b h-14 flex items-center px-6 gap-3"><div className="w-7 h-7 bg-black text-white flex items-center justify-center font-bold text-xs rounded">CH</div><span className="font-semibold text-sm">CoffeeHub Buyer Portal</span><span className="ml-3 text-xs border rounded-full px-3 py-1">{room?.name} • Read Only</span></div>
+      {/* CLEAN HEADER - logo PNG already contains Coffeehub text */}
+      <div className="border-b h-14 flex items-center px-6 bg-white justify-between">
+        <div className="flex items-center gap-3">
+          <img src="/coffeehub-logo.png" alt="CoffeeHub" className="h-6 w-auto object-contain" />
+          <div className="w-px h-5 bg-gray-200 mx-1"></div>
+          <span className="font-medium text-sm">Buyer Portal</span>
+          <span className="text-xs border rounded-full px-3 py-1 bg-[#fbfaf8] ml-1">{room?.name} • Read Only</span>
+        </div>
+        <span className="text- text-gray-400 hidden md:block">Secure • Read Only</span>
+      </div>
+
       <div className="max-w- mx-auto p-6 space-y-5">
         <div className="border rounded-lg p-4 flex justify-between text-sm"><span>Offers: <b>{offers.length}</b></span><span>Participants: <b>{participants.length}</b></span><span className="text-gray-400 text-xs">{buyerEmail}</span></div>
         {existingSample? (<div className="border rounded-lg p-5"><div className="flex justify-between items-center mb-4"><span className="font-semibold text-sm">Sample Shipment — <span className="text-green-600">{existingSample.status}</span></span><span className="text- px-2.5 py-1 bg-green-50 text-green-700 border border-green-100 rounded-full">{existingSample.status}</span></div><div className="flex gap-2">{["Requested","Preparing","Shipped","Delivered"].map((step,i)=>{const active=i<=getProgressIdx(existingSample.status); return <div key={step} className="flex-1"><div className={`h-2 rounded-full ${active? "bg-green-500":"bg-gray-200"}`}></div><div className={`text- mt-1 ${active? "text-gray-700":"text-gray-400"}`}>{step}</div></div>})}</div><div className="mt-4 bg-[#f6fdf6] border border-green-100 rounded-xl p-4 text-sm"><div>Courier: <b>{existingSample.courier||"— To be updated"}</b></div><div className="mt-1">Tracking: {existingSample.tracking_number||"—"}</div><button onClick={()=>setViewing({type:"Sample", data:existingSample})} className="text-xs underline mt-2">View Details →</button></div></div>) : existingRequest? (<div className="border rounded-lg p-5 bg-blue-50/50"><div className="font-semibold text-sm">Sample Request Submitted</div></div>) : (<div className="border rounded-lg p-5"><div className="font-semibold text-sm">Need a sample?</div><div className="mt-3"><SampleRequestButton offers={offers} roomId={room?.id || ""} buyerEmail={buyerEmail} /></div></div>)}

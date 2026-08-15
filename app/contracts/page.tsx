@@ -1,26 +1,44 @@
-"use client";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import Link from "next/link";
+"use client"
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
+import Link from "next/link"
 export default function ContractsPage(){
-  const [rows,setRows]=useState<any[]>([]); const [pos,setPos]=useState<any>({}); const [selected,setSelected]=useState<any>(null); const [form,setForm]=useState<any>({}); const [saving,setSaving]=useState(false);
-  useEffect(()=>{(async()=>{
-    const {data}=await supabase.from("Contracts").select("*").order("created_at",{ascending:false}).limit(100);
-    if(data){ setRows(data); const poIds=[...new Set(data.map((r:any)=>r.purchase_order_id).filter(Boolean))]; if(poIds.length){ const {data:pd}=await supabase.from("PurchaseOrders").select("*").in("id",poIds); const m:any={}; pd?.forEach((p:any)=>m[String(p.id)]=p); setPos(m);} }
-  })();},[]);
-  const open=(c:any)=>{ setSelected(c); setForm({status:c.status||"Draft",contract_number:c.contract_number||"",incoterm:c.incoterm||"FOB",shipment_window:c.shipment_window||"",payment_terms:c.payment_terms||"",special_conditions:c.special_conditions||"",price:c.price||""}); };
-  const save=async()=>{ if(!selected) return; setSaving(true); const payload:any={status:form.status,contract_number:form.contract_number||null,incoterm:form.incoterm||null,shipment_window:form.shipment_window||null,payment_terms:form.payment_terms||null,special_conditions:form.special_conditions||null,price:form.price?Number(form.price):null}; const {error}=await supabase.from("Contracts").update(payload).eq("id",selected.id); setSaving(false); if(error) return alert(error.message); setSelected(null); const {data}=await supabase.from("Contracts").select("*").order("created_at",{ascending:false}).limit(100); if(data) setRows(data); };
-  const createLogistics=async()=>{
-    if(!selected) return;
-    // Logistics requires contract_id bigint NO
-    const {data,error}=await supabase.from("Logistics").insert({contract_id:selected.id,status:"Booking Requested",buyer_email:selected.buyer_email||null,room_id:selected.room_id||null}).select().single();
-    if(error) return alert("Logistics: "+error.message);
-    alert("Logistics created!");
-    window.location.href="/logistics";
-  };
-  return <main className="min-h-screen bg-[#FBFBF9] p-6 max-w-[1080px] mx-auto"><div className="flex justify-between"><Link href="/" className="text-[12px] border bg-white px-3 py-1.5 rounded-full">← Seller OS</Link><h1 className="font-semibold">Contracts • {rows.length}</h1><Link href="/logistics" className="text-[12px] border bg-white px-3 py-1.5 rounded-full">Logistics →</Link></div>
-  <div className="mt-6 grid md:grid-cols-3 gap-6"><div className="md:col-span-2 bg-white border rounded-[16px] divide-y overflow-hidden">
-    {rows.map((c:any)=>{ const po=pos[String(c.purchase_order_id)]; return <div key={String(c.id)} onClick={()=>open(c)} className={`p-4 cursor-pointer transition ${selected?.id===c.id?"bg-black text-white":""}`}><div className="flex justify-between"><span className="text-[13px] font-medium">{c.contract_number||String(c.id)} • {c.buyer_email||"-"}</span><span className={`text-[10px] px-2 py-1 rounded-full ${selected?.id===c.id?"bg-white text-black":"bg-gray-50 border"}`}>{c.status}</span></div><div className={`text-[11px] mt-1 ${selected?.id===c.id?"text-white/60":"text-[#888]"}`}>PO {String(c.purchase_order_id).slice(0,8)} • {c.incoterm||"FOB"} • ${c.price||"-"} • {c.shipment_window||""}</div></div>})}
-  </div>
-  <div className="bg-white border rounded-[16px] p-5 h-fit sticky top-6">{!selected?<div className="text-[12px] text-[#999] text-center py-10">← Select contract</div>:<div><h3 className="font-semibold text-[14px]">{form.contract_number||String(selected.id)}</h3><div className="mt-4 space-y-3"><select value={form.status} onChange={e=>setForm({...form,status:e.target.value})} className="w-full h-9 border rounded-full px-3 text-[13px]"><option>Draft</option><option>Sent</option><option>Signed</option><option>Cancelled</option></select><input value={form.contract_number} onChange={e=>setForm({...form,contract_number:e.target.value})} placeholder="Contract number" className="w-full h-9 border rounded-full px-3 text-[13px]" /><div className="grid grid-cols-2 gap-2"><input value={form.incoterm} onChange={e=>setForm({...form,incoterm:e.target.value})} placeholder="Incoterm FOB" className="h-9 border rounded-full px-3 text-[13px]" /><input value={form.price} onChange={e=>setForm({...form,price:e.target.value})} placeholder="Price" className="h-9 border rounded-full px-3 text-[13px]" /></div><input value={form.shipment_window} onChange={e=>setForm({...form,shipment_window:e.target.value})} placeholder="Shipment window" className="w-full h-9 border rounded-full px-3 text-[13px]" /><input value={form.payment_terms} onChange={e=>setForm({...form,payment_terms:e.target.value})} placeholder="Payment terms" className="w-full h-9 border rounded-full px-3 text-[13px]" /><textarea value={form.special_conditions} onChange={e=>setForm({...form,special_conditions:e.target.value})} placeholder="Special conditions" className="w-full h-20 border rounded-[16px] p-3 text-[13px]" /><button onClick={save} disabled={saving} className="w-full h-10 rounded-full bg-black text-white text-[13px]">{saving?"Saving...":"Save"}</button><button onClick={createLogistics} className="w-full h-10 rounded-full border text-[13px]">Create Logistics →</button></div></div>}</div></div></main>;
+    const searchParams = useSearchParams();
+  const roomFilter = searchParams.get('room');
+  const [list,setList]=useState<any[]>([]); const [sel,setSel]=useState<any>(null)
+  const [form,setForm]=useState({status:"Draft",incoterm:"FOB",shipment_window:"30 DAYS",payment_terms:"100%",special_conditions:"",price:""})
+  useEffect(()=>{(async()=>{ const {data}=await supabase.from("Contracts").select("*").order("created_at",{ascending:false}).limit(100); setList(data||[]) })()},[])
+  const save=async()=>{
+    if(!sel) return
+    await supabase.from("Contracts").update(form).eq("id",sel.id)
+    const {data}=await supabase.from("Contracts").select("*").order("created_at",{ascending:false}).limit(100); setList(data||[])
+    alert(`Contract ${sel.contract_number} saved to ${form.status} - buyer in ${sel.room_id} sees it instantly`)
+  }
+  return (
+    <div className="min-h-screen bg-white"><div className="border-b px-6 h- flex items-center justify-between"><Link href="/" className="px-4 py-1.5 rounded-full border text-sm">← Seller OS</Link><span className="font-semibold">Contracts • {list.length}</span><Link href="/logistics" className="px-4 py-1.5 rounded-full border text-sm">Logistics →</Link></div>
+      <div className="grid grid-cols-2 h-[calc(100vh-56px)]">
+        <div className="border-r overflow-auto">{list.map((c:any)=>(
+          <div key={String(c.id)} onClick={()=>{setSel(c); setForm({status:c.status||"Draft",incoterm:c.incoterm||"FOB",shipment_window:c.shipment_window||"30 DAYS",payment_terms:c.payment_terms||"100%",special_conditions:c.special_conditions||"",price:c.price||""})}} className={`px-6 py-4 border-b cursor-pointer transition-all ${sel?.id===c.id? "bg-black text-white" : "hover:bg-[#fbfaf8] active:bg-black active:text-white"}`}>
+            <div className="text-sm">{c.buyer_email} • {c.room_id} • {c.contract_number}</div>
+            <div className="text-xs mt-1 opacity-70">PO {String(c.purchase_order_id).slice(0,8)} • FOB • ${c.price} • {c.status}</div>
+          </div>
+        ))}</div>
+        <div className="p-6 overflow-auto">
+          {sel? (
+            <div className="border rounded-2xl p-5 space-y-3">
+              <div><h3 className="font-semibold">{sel.contract_number} • {sel.buyer_email}</h3><p className="text-xs text-neutral-400">{sel.room_id} • PO {String(sel.purchase_order_id).slice(0,8)}</p></div>
+              <select value={form.status} onChange={e=>setForm({...form,status:e.target.value})} className="w-full border rounded-full px-4 py-2.5 text-sm"><option>Draft</option><option>Sent</option><option>Signed</option></select>
+              <div className="grid grid-cols-2 gap-3"><input placeholder="Incoterm - FOB" value={form.incoterm} onChange={e=>setForm({...form,incoterm:e.target.value})} className="border rounded-full px-4 py-2.5 text-sm"/><input placeholder="Shipment - 30 DAYS" value={form.shipment_window} onChange={e=>setForm({...form,shipment_window:e.target.value})} className="border rounded-full px-4 py-2.5 text-sm"/></div>
+              <input placeholder="Payment - 100%" value={form.payment_terms} onChange={e=>setForm({...form,payment_terms:e.target.value})} className="w-full border rounded-full px-4 py-2.5 text-sm"/>
+              <input placeholder="Price" value={form.price} onChange={e=>setForm({...form,price:e.target.value})} className="w-full border rounded-full px-4 py-2.5 text-sm"/>
+              <textarea placeholder="Special conditions" value={form.special_conditions} onChange={e=>setForm({...form,special_conditions:e.target.value})} className="w-full border rounded-2xl px-4 py-3 text-sm h-24"/>
+              <button onClick={save} className="w-full py-3 rounded-full bg-black text-white text-sm font-medium hover:bg-neutral-800 active:scale-[0.98]">Save - buyer sees View Contract update</button>
+              <button onClick={async()=>{ const {data}=await supabase.from("Logistics").insert({contract_id:sel.id, room_id:sel.room_id, buyer_email:sel.buyer_email, status:"Booked", booking_number:`BK-${Date.now()}`}).select().single(); alert(`Logistics ${data.booking_number} created for ${sel.room_id}`) }} className="w-full py-3 rounded-full border text-sm hover:bg-black hover:text-white transition-all">Create Logistics →</button>
+            </div>
+          ) : <div className="text-sm text-neutral-400 p-6 border rounded-2xl border-dashed text-center">← Select contract - black = selected</div>}
+        </div>
+      </div>
+    </div>
+  )
 }
