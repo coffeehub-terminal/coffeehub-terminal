@@ -1,7 +1,8 @@
 "use client"
-import { Suspense,  useSearchParams } from "next/navigation";
-import { Suspense,  useEffect, useState } from "react"
-import { Suspense,  supabase } from "@/lib/supabase"
+import { Suspense } from "react"
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
 import Link from "next/link"
 function SamplesPageInner(){
     const searchParams = useSearchParams();
@@ -53,6 +54,8 @@ function SamplesPageInner(){
 }
 
 export const dynamic = "force-dynamic"
-export default function SamplesPage(){
+function SamplesPageContent(){
   return <Suspense fallback={<div>Loading...</div>}><SamplesPageInner /></Suspense>
 }
+
+export default function SamplesPage() { return <Suspense fallback={<div>Loading...</div>}><SamplesPageContent /></Suspense> }

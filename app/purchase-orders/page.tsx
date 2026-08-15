@@ -1,7 +1,8 @@
 "use client"
-import { Suspense,  useSearchParams } from "next/navigation";
-import { Suspense,  useEffect, useState } from "react"
-import { Suspense,  supabase } from "@/lib/supabase"
+import { Suspense } from "react"
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
 import Link from "next/link"
 function POPageInner(){
     const searchParams = useSearchParams();
@@ -27,6 +28,8 @@ function POPageInner(){
 }
 
 export const dynamic = "force-dynamic"
-export default function POPage(){
+function POPageContent(){
   return <Suspense fallback={<div>Loading...</div>}><POPageInner /></Suspense>
 }
+
+export default function POPage() { return <Suspense fallback={<div>Loading...</div>}><POPageContent /></Suspense> }
