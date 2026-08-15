@@ -82,31 +82,24 @@ export default function Home(){
 
   return (
     <div className="min-h-screen bg-[#fbfaf8]">
-      {/* HEADER - PRO: Samples + POs visible, Contracts/Logistics in dropdown */}
+      {/* PRO HEADER - BIGGER LOGO + ENGRAVED SELLER OS + NO CAROUSEL */}
       <header className="border-b bg-white sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 shrink-0">
-            <img src="/coffeehub-logo.png" alt="CoffeeHub" className="h-6 w-auto" />
-            <span className="hidden sm:inline-flex text- px-2 py-1 rounded-full border bg-[#fbfaf8]">Seller</span>
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 h- flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 shrink-0">
+            <img src="/coffeehub-logo.png" alt="CoffeeHub" className="h-9 sm:h-10 w-auto object-contain" />
+            <span className="text- tracking-[0.28em] uppercase text-neutral-400 font-medium">Seller OS</span>
           </div>
-          <nav className="flex items-center gap-1.5">
-            {/* Always visible on mobile: Samples + POs */}
-            <Link href="/samples" className="inline-flex items-center px-3 py-1.5 rounded-full border border-black bg-white text-xs whitespace-nowrap">Samples {newSamples>0 && <span className="ml-1.5 bg-[#00C950] text-white px-2 py-0.5 rounded-full text-">+{newSamples} new</span>}</Link>
-            <Link href="/purchase-orders" className="inline-flex items-center px-3 py-1.5 rounded-full border bg-white text-xs whitespace-nowrap">POs {newPOs>0 && <span className="ml-1.5 bg-[#00C950] text-white px-2 py-0.5 rounded-full text-">+{newPOs}</span>}</Link>
-
-            {/* Desktop: show Contracts + Logistics too */}
-            <Link href="/contracts" className="hidden lg:inline-flex px-3 py-1.5 rounded-full border bg-white text-xs whitespace-nowrap">Contracts <span className="ml-1 bg-black text-white px-1.5 rounded-full text-">14</span></Link>
-            <Link href="/logistics" className="hidden lg:inline-flex px-3 py-1.5 rounded-full border bg-white text-xs whitespace-nowrap">Logistics</Link>
-
-            {/* Mobile Dropdown: Contracts / Logistics */}
+          <nav className="flex items-center gap-2">
+            <Link href="/samples" className="inline-flex items-center px-3.5 py-2 rounded-full border border-black bg-white text-xs font-medium whitespace-nowrap">Samples {newSamples>0 && <span className="ml-1.5 bg-[#00C950] text-white px-2 py-0.5 rounded-full text-">+{newSamples}</span>}</Link>
+            <Link href="/purchase-orders" className="inline-flex items-center px-3.5 py-2 rounded-full border bg-white text-xs font-medium whitespace-nowrap">POs {newPOs>0 && <span className="ml-1.5 bg-[#00C950] text-white px-2 py-0.5 rounded-full text-">+{newPOs}</span>}</Link>
+            <Link href="/contracts" className="hidden lg:inline-flex px-3.5 py-2 rounded-full border bg-white text-xs font-medium">Contracts</Link>
+            <Link href="/logistics" className="hidden lg:inline-flex px-3.5 py-2 rounded-full border bg-white text-xs font-medium">Logistics</Link>
             <div className="relative lg:hidden">
-              <button onClick={()=>setShowMore(!showMore)} className="px-3 py-1.5 rounded-full border bg-[#fbfaf8] text-xs whitespace-nowrap">More ▾</button>
+              <button onClick={()=>setShowMore(!showMore)} className="px-3.5 py-2 rounded-full bg-[#fbfaf8] border text-xs font-medium">More ▾</button>
               {showMore && (
-                <div className="absolute right-0 top-10 w-56 bg-white border rounded-xl shadow-2xl p-2 z-50">
-                  <Link onClick={()=>setShowMore(false)} href="/contracts" className="flex justify-between items-center px-3 py-3 rounded-lg hover:bg-neutral-50 text-sm"><span>Contracts</span><span className="bg-black text-white px-2 py-0.5 rounded-full text-">14</span></Link>
-                  <Link onClick={()=>setShowMore(false)} href="/logistics" className="flex justify-between items-center px-3 py-3 rounded-lg hover:bg-neutral-50 text-sm"><span>Logistics</span><span className="text-neutral-400 text-xs">→</span></Link>
-                  <div className="border-t my-1"></div>
-                  <Link onClick={()=>setShowMore(false)} href="/purchase-orders" className="lg:hidden flex justify-between items-center px-3 py-3 rounded-lg hover:bg-neutral-50 text-sm"><span>Purchase Orders</span>{newPOs>0 && <span className="bg-[#00C950] text-white px-2 py-0.5 rounded-full text-">+{newPOs}</span>}</Link>
+                <div className="absolute right-0 top-11 w-52 bg-white border rounded-xl shadow-2xl p-2 z-50">
+                  <Link onClick={()=>setShowMore(false)} href="/contracts" className="flex justify-between items-center px-3 py-3 rounded-lg hover:bg-neutral-50 text-sm"><span>Contracts</span><span className="bg-black text-white px-2 py-0.5 rounded-full text-">18</span></Link>
+                  <Link onClick={()=>setShowMore(false)} href="/logistics" className="flex justify-between items-center px-3 py-3 rounded-lg hover:bg-neutral-50 text-sm"><span>Logistics</span><span className="text-neutral-400">→</span></Link>
                 </div>
               )}
             </div>
