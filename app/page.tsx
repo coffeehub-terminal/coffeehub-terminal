@@ -37,22 +37,14 @@ export default function Home(){
   return (
     <div className="min-h-screen bg-[#fbfaf8]">
       <header className="border-b border-zinc-200 bg-white sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-3 sm:px-6">
-          <div className="h- flex items-center justify-between">
-            <img src="/coffeehub-logo.png" alt="CoffeeHub" className="h- w-auto max-w- object-contain shrink-0" />
-            <nav className="hidden lg:flex items-center gap-1.5 ml-auto">
-              <Link href="/samples" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-3 text- font-medium text-zinc-700">Samples {newSamples>0? `(${newSamples})` : ""}</Link>
-              <Link href="/purchase-orders" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-3 text- font-medium text-zinc-700">POs {newPOs>0? `(${newPOs})` : ""}</Link>
-              <Link href="/contracts" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-3 text- font-medium text-zinc-700">Contracts</Link>
-              <Link href="/logistics" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-3 text- font-medium text-zinc-700">Logistics</Link>
-            </nav>
-          </div>
-          <div className="flex lg:hidden items-center gap-1.5 pb-2.5">
-            <Link href="/samples" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-3 text- font-medium text-zinc-700">Samples {newSamples>0? `(${newSamples})` : ""}</Link>
-            <Link href="/purchase-orders" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-3 text- font-medium text-zinc-700">POs {newPOs>0? `(${newPOs})` : ""}</Link>
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 py-2">
+          <img src="/coffeehub-logo.png" alt="CoffeeHub" className="h- w-auto max-w- object-contain block" />
+          <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+            <Link href="/samples" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-2.5 text- font-medium text-zinc-700">Samples {newSamples>0? `(${newSamples})` : ""}</Link>
+            <Link href="/purchase-orders" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-2.5 text- font-medium text-zinc-700">POs {newPOs>0? `(${newPOs})` : ""}</Link>
             <div className="relative">
-              <button onClick={()=>setShowMore(!showMore)} className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-[#fbfaf8] px-3 text- font-medium text-zinc-700">More ▾</button>
-              {showMore && <div className="absolute left-0 top- w-44 bg-white border border-zinc-200 rounded-xl shadow-2xl p-1 z-50"><Link href="/contracts" className="block px-3 py-2.5 rounded-lg hover:bg-zinc-50 text-">Contracts</Link><Link href="/logistics" className="block px-3 py-2.5 rounded-lg hover:bg-zinc-50 text-">Logistics</Link></div>}
+              <button onClick={()=>setShowMore(!showMore)} className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-[#fbfaf8] px-2.5 text- font-medium text-zinc-700">More ▾</button>
+              {showMore && <div className="absolute left-0 top- w-44 bg-white border border-zinc-200 rounded-xl shadow-xl p-1 z-50"><Link href="/contracts" className="block px-3 py-2 rounded-lg hover:bg-zinc-50 text-">Contracts</Link><Link href="/logistics" className="block px-3 py-2 rounded-lg hover:bg-zinc-50 text-">Logistics</Link></div>}
             </div>
           </div>
         </div>
