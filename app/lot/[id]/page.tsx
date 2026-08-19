@@ -1,12 +1,16 @@
 "use client"
 export const dynamic = "force-dynamic"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import Link from "next/link"
+import PurchaseOrderButton from "@/components/PurchaseOrderButton"
+import SampleRequestButton from "@/components/SampleRequestButton"
 
 export default function LotDetail(){
   const {id} = useParams() as any
+  const searchParams = useSearchParams()
+  const roomId = searchParams.get("room") // if buyer comes from /r/TOKEN?room=...
   const [lot,setLot]=useState<any>(null)
   const [offer,setOffer]=useState<any>(null)
   const [status,setStatus]=useState("Loading...")
@@ -15,14 +19,11 @@ export default function LotDetail(){
     if(!id) return
     const load=async()=>{
       setStatus("Loading...")
-      // 1. Try by Lots.id (uuid)
       let {data:lotData} = await supabase.from("Lots").select("*").eq("id",id).maybeSingle()
-      // 2. Try by lot_number (e.g. "2", "303", "3500101")
       if(!lotData){
         const {data} = await supabase.from("Lots").select("*").eq("lot_number",id).maybeSingle()
         lotData = data || null
       }
-      // 3. Try by Offer id or Offer lot_number
       if(!lotData){
         let {data:offById} = await supabase.from("Offers").select("*").eq("id",id).maybeSingle()
         if(!offById){
@@ -34,12 +35,11 @@ export default function LotDetail(){
           const {data:lotByOffer} = await supabase.from("Lots").select("*").eq("lot_number",offById.lot_number).maybeSingle()
           lotData = lotByOffer || null
           if(!lotData){
-            // If no Lot, use Offer as lot
             setLot({
               id: offById.id,
               lot_number: offById.lot_number,
               origin: offById.origin,
-              price_per_kg: offById.price_per_kg,
+              price_per_kg: offById.price_per_kg?? offById.fob?? offById.price,
               farm: offById.farm,
               variety: offById.variety,
               process: offById.process,
@@ -71,12 +71,25 @@ export default function LotDetail(){
 
   return (
     <div className="min-h-screen bg-[#fbfaf8]">
-      <header className="border-b bg-white h- flex items-center justify-between px-6"><div className="flex items-center gap-2"><img src="/coffeehub-logo.png" alt="CoffeeHub" className="h-7 w-auto object-contain" /></div><Link href="/" className="px-3 py-1.5 rounded-full border bg-white text-sm">← Back</Link></header>
-      <main className="max-w- mx-auto px-6 py-8">
+      <header className="border-b bg-white h-14 flex items-center justify-between px-6">
+        <div className="flex items-center gap-2"><img src="/coffeehub-logo.png" alt="CoffeeHub" className="h-7 w-auto object-contain" /><span className="text-sm font-semibold">CoffeeHub</span></div>
+        <Link href="/" className="px-3 py-1.5 rounded-full border bg-white text-sm">← Back to inventory</Link>
+      </header>
+      <main className="max-w-4xl mx-auto px-6 py-8">
         <div className="flex justify-between items-start">
-          <div><h1 className="text-3xl font-bold">{lot.lot_number} • {lot.origin}</h1><p className="text-sm text-neutral-500 mt-1">{lot.farm||"-"} • {lot.variety||"-"} • ${lot.price_per_kg}/kg {offer && <span className="ml-2 px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs">{offer.id}</span>}</p></div>
+          <div><h1 className="text-3xl font-bold">{lot.lot_number} • {lot.origin}</h1><p className="text-sm text-neutral-500 mt-1">{lot.farm||"-"} • {lot.variety||"-"} • ${lot.price_per_kg}/kg {offer && <span className="ml-2 px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs">{offer.id.slice(0,12)}</span>}</p></div>
           <div className="text-right"><div className="text- text-neutral-400 tracking-widest">PRICE</div><div className="text-xl font-bold">${lot.price_per_kg}/kg</div></div>
         </div>
+
+        {/* BUYER ACTIONS - this makes View Coffee useful for buyer too */}
+        {offer && (
+          <div className="mt-4 flex gap-2">
+            <SampleRequestButton offers={[offer]} roomId={roomId || ""} buyerEmail={""} />
+            <PurchaseOrderButton roomId={roomId || ""} offerId={offer.id} price={offer.price_per_kg?? lot.price_per_kg} buyerEmail={""} />
+            <span className="text-xs text-neutral-400 ml-2 self-center">Buyer can request sample or accept offer here</span>
+          </div>
+        )}
+
         <div className="bg-white rounded-2xl border overflow-hidden mt-6">
           <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y">
             <div className="p-4"><div className="text- text-neutral-400">COMPANY</div><div className="text-sm mt-1">{lot.Company||lot.company_name||"-"}</div></div>
@@ -88,7 +101,7 @@ export default function LotDetail(){
             <div className="p-4"><div className="text- text-neutral-400">PROCESS</div><div className="text-sm mt-1">{lot.process||"-"}</div></div>
             <div className="p-4"><div className="text- text-neutral-400">BAGS</div><div className="text-sm mt-1">{lot.required_bags||"-"}</div></div>
             <div className="p-4 col-span-2"><div className="text- text-neutral-400">PRODUCER / ALTITUDE / CERTS</div><div className="text-sm mt-1">{lot.producer||"-"} • {lot.altitude||"-"} masl • {lot.certifications||"-"}</div></div>
-            <div className="p-4 col-span-2"><div className="text- text-neutral-400">PHOTO</div><div className="text-xs mt-1 truncate">{lot.photo_url||"-"}</div></div>
+            <div className="p-4 col-span-2"><div className="text- text-neutral-400">PHOTO</div><div className="text-xs mt-1 truncate">{lot.photo_url||"-"}</div>{lot.photo_url && <img src={lot.photo_url} className="mt-2 h-32 rounded-lg object-cover" />}</div>
           </div>
           <div className="p-4 border-t"><div className="text- text-neutral-400">CUP NOTES</div><div className="bg-[#fbfaf8] border rounded-xl p-3 text-sm mt-2">{lot.cup_notes||"-"}</div></div>
           <div className="p-4 bg-[#fbfaf8] border-t text-xs font-mono">Lot UUID: {lot.id} • Offer: {offer?.id||"none"} • Created: {lot.created_at? new Date(lot.created_at).toLocaleString() : "-"}</div>
