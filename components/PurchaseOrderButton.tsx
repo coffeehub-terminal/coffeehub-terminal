@@ -9,68 +9,35 @@ export default function PurchaseOrderButton({ roomId, buyerEmail, offerId, price
   const handle = async () => {
     setLoading(true);
     try {
-      const safeEmail = buyerEmail || "buyer@example.com";
-      if (!roomId || !offerId) throw new Error("Missing roomId/offerId");
-
-      // 1. Create PO - try both column names to match your Supabase schema
+      const email = buyerEmail || "buyer@example.com";
+      
       const { data: po, error: poErr } = await supabase
         .from("PurchaseOrders")
-        .insert({ 
-          id: `PO-${Date.now()}`,
-          room_id: roomId, 
-          buyer_email: safeEmail, 
-          offer_id: offerId, 
-          quantity: 1,
-          quantity_bags: 1,
-          price: price,
-          price_per_kg: price,
-          status: "Approved",
-          created_at: new Date().toISOString()
-        })
+        .insert({ room_id: roomId, buyer_email: email, offer_id: offerId, quantity: 1, price, status: "Approved" })
         .select()
         .single();
+      if (poErr) throw new Error(`PO: ${poErr.message}`);
 
-      if (poErr) throw new Error("PO insert failed: " + poErr.message);
-      if (!po?.id) throw new Error("PO returned null - check RLS policies");
-
-      // 2. Create Contract
       const { data: ct, error: ctErr } = await supabase
         .from("Contracts")
-        .insert({ 
-          id: `CT-${Date.now()}`,
-          purchase_order_id: po.id, 
-          room_id: roomId, 
-          buyer_email: safeEmail, 
-          status: "Draft", 
-          contract_number: `CT-${String(po.id).slice(0,8).toUpperCase()}`,
-          created_at: new Date().toISOString()
-        })
+        .insert({ purchase_order_id: po.id, room_id: roomId, buyer_email: email, status: "Draft", contract_number: `CT-${po.id.slice(0,8).toUpperCase()}` })
         .select()
         .single();
+      if (ctErr) throw new Error(`Contract: ${ctErr.message}`);
 
-      if (ctErr) throw new Error("Contract failed: " + ctErr.message);
-
-      // 3. Create Logistics
-      const { error: logErr } = await supabase.from("Logistics").insert({ 
-        id: `LOG-${Date.now()}`,
-        contract_id: ct.id, 
-        room_id: roomId, 
-        buyer_email: safeEmail, 
-        status: "Booked", 
-        booking_number: `BK-${Date.now().toString().slice(-6)}`,
-        created_at: new Date().toISOString()
-      });
-
-      if (logErr) throw new Error("Logistics failed: " + logErr.message);
+      const { error: logErr } = await supabase
+        .from("Logistics")
+        .insert({ contract_id: ct.id, room_id: roomId, buyer_email: email, status: "Booked", booking_number: `BK-${Date.now().toString().slice(-6)}` });
+      if (logErr) throw new Error(`Logistics: ${logErr.message}`);
 
       location.reload();
     } catch (e: any) {
+      alert(`PO insert failed: ${e.message}`);
       console.error(e);
-      alert(e.message);
     } finally {
       setLoading(false);
     }
   };
 
-  return <button onClick={handle} disabled={loading} className="h-7 px-3 border border-black rounded-full text-xs bg-black text-white hover:bg-gray-800">{loading ? "Creating..." : "Buy $" + price + "/kg → Accept Offer"}</button>;
+  return <button onClick={handle} disabled={loading} className="h-7 px-3 border border-black rounded-full text-xs bg-black text-white">{loading ? "Creating..." : `Buy $${price}/kg → Accept Offer`}</button>;
 }
