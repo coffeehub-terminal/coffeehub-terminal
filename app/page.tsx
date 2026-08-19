@@ -37,9 +37,9 @@ export default function Home(){
   return (
     <div className="min-h-screen bg-[#fbfaf8]">
       <header className="border-b border-zinc-200 bg-white sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-3 sm:px-6 py-2">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 py-2.5">
           <img src="/coffeehub-logo.png" alt="CoffeeHub" className="h- w-auto max-w- object-contain block" />
-          <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+          <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
             <Link href="/samples" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-2.5 text- font-medium text-zinc-700">Samples {newSamples>0? `(${newSamples})` : ""}</Link>
             <Link href="/purchase-orders" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-2.5 text- font-medium text-zinc-700">POs {newPOs>0? `(${newPOs})` : ""}</Link>
             <div className="relative">
