@@ -1,7 +1,7 @@
 "use client"
-const getFlag = (o:string) => {
-  const s=(o||"").toLowerCase()
-  if(s.includes("colombia")) return "🇨🇴"; if(s.includes("brazil")) return "🇧🇷"; if(s.includes("ethiopia")) return "🇪🇹"; return "🌎"
+const getFlag = (origin:string) => {
+  const o=(origin||"").toLowerCase()
+  if(o.includes("colombia")) return "🇨🇴"; if(o.includes("brazil")) return "🇧🇷"; if(o.includes("ethiopia")) return "🇪🇹"; return "🌎"
 }
 import { useEffect, useState, useMemo } from "react"
 import { supabase } from "@/lib/supabase"
@@ -10,12 +10,9 @@ import Link from "next/link"
 export default function Home(){
   const [activeScreen,setActiveScreen]=useState<"inventory"|"offers"|"rooms">("inventory")
   const [lots,setLots]=useState<any[]>([]); const [offers,setOffers]=useState<any[]>([]); const [rooms,setRooms]=useState<any[]>([])
-  const [samples,setSamples]=useState<any[]>([]); const [pos,setPos]=useState<any[]>([]);
-  const [showLotModal,setShowLotModal]=useState(false); const [showRoomModal,setShowRoomModal]=useState(false); const [showMore,setShowMore]=useState(false)
-  const [saving,setSaving]=useState(false); const [sending,setSending]=useState(false)
-  const [form,setForm]=useState({Company:"",lot_reference:"",lot_number:"",origin:"",process:"",score:"",price_per_kg:"",harvest_year:"",required_bags:"",certifications:"",photo_url:"",variety:"",farm:"",producer:"",altitude:"",cup_notes:""})
+  const [samples,setSamples]=useState<any[]>([]); const [pos,setPos]=useState<any[]>([]); const [showRoomModal,setShowRoomModal]=useState(false); const [showMore,setShowMore]=useState(false)
+  const [sending,setSending]=useState(false)
   const [roomForm,setRoomForm]=useState({name:"",email:"",selectedOffers:[] as string[]}); const [offerSearch,setOfferSearch]=useState("")
-
   const fetchAll=async()=>{
     const {data:lotsData}=await supabase.from("Lots").select("*").order("created_at",{ascending:false}).limit(100)
     const {data:offersData}=await supabase.from("Offers").select("*").order("created_at",{ascending:false}).limit(100)
@@ -28,17 +25,6 @@ export default function Home(){
   const filteredOffers=useMemo(()=>{ const q=offerSearch.toLowerCase(); if(!q) return offers.slice(0,25); return offers.filter((o:any)=>`${o.lot_number} ${o.origin} ${o.farm||""}`.toLowerCase().includes(q)).slice(0,25) },[offers,offerSearch])
   const newSamples = samples.filter((s:any)=> new Date(s.created_at) > new Date(Date.now()-86400000) || s.status==="Preparing").length
   const newPOs = pos.filter((p:any)=> p.status==="Pending").length
-
-  const createLot=async()=>{
-    if(!form.lot_number||!form.origin||!form.price_per_kg){alert("lot_number, origin, price_per_kg required");return}
-    setSaving(true)
-    const toNull=(v:any)=>v===""?null:v; const toNum=(v:any)=>v===""?null:Number(v)
-    const payload:any={Company:toNull(form.Company),lot_reference:toNull(form.lot_reference),lot_number:form.lot_number,origin:form.origin,process:toNull(form.process),score:toNum(form.score),price_per_kg:Number(form.price_per_kg),harvest_year:toNum(form.harvest_year),required_bags:toNum(form.required_bags),certifications:toNull(form.certifications),photo_url:toNull(form.photo_url),variety:toNull(form.variety),farm:toNull(form.farm),producer:toNull(form.producer),altitude:toNum(form.altitude),cup_notes:toNull(form.cup_notes)}
-    const {error}=await supabase.from("Lots").insert(payload)
-    if(error){alert(error.message); setSaving(false); return}
-    await supabase.from("Offers").insert({id:`OFF-${Date.now()}`,lot_number:payload.lot_number,origin:payload.origin,price_per_kg:payload.price_per_kg,farm:payload.farm,variety:payload.variety,process:payload.process,score:payload.score,company_name:payload.Company,required_bags:payload.required_bags,status:"Open"})
-    setShowLotModal(false); setForm({Company:"",lot_reference:"",lot_number:"",origin:"",process:"",score:"",price_per_kg:"",harvest_year:"",required_bags:"",certifications:"",photo_url:"",variety:"",farm:"",producer:"",altitude:"",cup_notes:""}); await fetchAll(); setSaving(false)
-  }
   const createRoom=async()=>{
     if(!roomForm.name) return; setSending(true)
     const share_token=crypto.randomUUID(); const roomId=`ROOM-${Math.random().toString(36).slice(2,6).toUpperCase()}`
@@ -48,57 +34,27 @@ export default function Home(){
     fetch("/api/send-room",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:roomForm.email,buyerLink,roomName:roomForm.name})}).catch(()=>{})
     setShowRoomModal(false); setRoomForm({name:"",email:"",selectedOffers:[]}); setOfferSearch(""); await fetchAll(); prompt("Room link:",buyerLink); setSending(false)
   }
-
   return (
     <div className="min-h-screen bg-[#fbfaf8]">
       <header className="border-b bg-white sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-4 h- flex items-center justify-between">
-          <img src="/coffeehub-logo.png" alt="CoffeeHub" className="h-11 w-auto object-contain" />
-          <nav className="flex items-center gap-2">
-            <Link href="/samples" className="px-3.5 py-2 rounded-full border border-black bg-white text-xs font-medium">Samples {newSamples>0 && <span className="ml-1.5 bg-[#00C950] text-white px-2 py-0.5 rounded-full text-">+{newSamples}</span>}</Link>
-            <Link href="/purchase-orders" className="px-3.5 py-2 rounded-full border bg-white text-xs font-medium">POs {newPOs>0 && <span className="ml-1.5 bg-[#00C950] text-white px-2 py-0.5 rounded-full text-">+{newPOs}</span>}</Link>
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 h- flex items-center justify-between">
+          <img src="/coffeehub-logo.png" alt="CoffeeHub" className="h-9 sm:h-11 w-auto object-contain shrink-0" />
+          <nav className="flex items-center gap-1.5 sm:gap-2">
+            <Link href="/samples" className="px-3 py-2 rounded-full border bg-white text- font-medium">Samples {newSamples>0? `(${newSamples})` : ""}</Link>
+            <Link href="/purchase-orders" className="px-3 py-2 rounded-full border bg-white text- font-medium">POs {newPOs>0? `(${newPOs})` : ""}</Link>
             <Link href="/contracts" className="hidden lg:inline-flex px-3.5 py-2 rounded-full border bg-white text-xs">Contracts</Link>
             <Link href="/logistics" className="hidden lg:inline-flex px-3.5 py-2 rounded-full border bg-white text-xs">Logistics</Link>
-            <div className="relative lg:hidden"><button onClick={()=>setShowMore(!showMore)} className="px-3.5 py-2 rounded-full bg-[#fbfaf8] border text-xs">More ▾</button>{showMore && <div className="absolute right-0 top-11 w-48 bg-white border rounded-xl shadow-2xl p-2 z-50"><Link href="/contracts" className="block px-3 py-2.5 rounded-lg hover:bg-neutral-50 text-sm">Contracts</Link><Link href="/logistics" className="block px-3 py-2.5 rounded-lg hover:bg-neutral-50 text-sm">Logistics</Link></div>}</div>
+            <div className="relative lg:hidden"><button onClick={()=>setShowMore(!showMore)} className="px-3 py-2 rounded-full bg-[#fbfaf8] border text-">More ▾</button>{showMore && <div className="absolute right-0 top-11 w-48 bg-white border rounded-xl shadow-2xl p-2 z-50"><Link href="/contracts" className="block px-3 py-2.5 rounded-lg hover:bg-neutral-50 text-sm">Contracts</Link><Link href="/logistics" className="block px-3 py-2.5 rounded-lg hover:bg-neutral-50 text-sm">Logistics</Link></div>}</div>
           </nav>
         </div>
       </header>
-
-      <main className="max-w-6xl mx-auto px-4 py-6">
-        <div className="flex justify-between items-start gap-3 mb-6"><div><h1 className="text-xl font-bold">Your green coffee</h1><p className="text-xs text-neutral-500 mt-1">List it, share a room, move it.</p></div><div className="flex gap-2"><button onClick={()=>setShowLotModal(true)} className="px-4 py-2 rounded-full bg-black text-white text-xs">+ New lot</button><button onClick={()=>setShowRoomModal(true)} className="px-4 py-2 rounded-full bg-white border text-xs">+ Buyer room</button></div></div>
+      <main className="max-w-6xl mx-auto px-3 sm:px-4 py-6">
+        <div className="flex justify-between items-start gap-3 mb-6"><div><h1 className="text-xl font-bold">Your green coffee</h1><p className="text-xs text-neutral-500 mt-1">List it, share a room, move it.</p></div><div className="flex gap-2"><Link href="/lots/new" className="px-4 py-2 rounded-full bg-black text-white text-xs">+ New lot</Link><button onClick={()=>setShowRoomModal(true)} className="px-4 py-2 rounded-full bg-white border text-xs">+ Buyer room</button></div></div>
         <div className="flex gap-6 border-b mb-6"><button onClick={()=>setActiveScreen("inventory")} className={`pb-3 text-sm ${activeScreen==="inventory"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Inventory {lots.length}</button><button onClick={()=>setActiveScreen("offers")} className={`pb-3 text-sm ${activeScreen==="offers"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Offers {offers.length}</button><button onClick={()=>setActiveScreen("rooms")} className={`pb-3 text-sm ${activeScreen==="rooms"? "border-b-2 border-black font-medium" : "text-neutral-500"}`}>Rooms {rooms.length}</button></div>
-
-        {activeScreen==="inventory" && (<div className="bg-white rounded-xl border overflow-hidden"><div className="px-4 py-3 border-b flex justify-between text-xs"><span className="text-neutral-500">Lots in warehouse - full details</span><span className="text-neutral-400">{lots.length} lots</span></div>{lots.map((lot:any)=>(<Link href={`/lot/${lot.id}`} key={String(lot.id)} className="flex items-center justify-between px-4 py-3 border-b last:border-0 hover:bg-[#fbfaf8]"><div className="flex items-center gap-3"><div className="w-9 h-9 bg-[#fbfaf8] border rounded-xl flex items-center justify-center text-">{getFlag(lot.origin||"")}</div><div><div className="text- font-medium">{lot.lot_number} • {lot.origin} • {lot.process||""} • Score {lot.score||"-"}</div><div className="text- text-neutral-400">{lot.Company||""} • {lot.farm||"-"} • {lot.variety||"-"} • {lot.producer||""} • {lot.required_bags||"?"} bags • {lot.altitude||""}m • {lot.cup_notes||""}</div></div></div><div className="text- font-medium">${lot.price_per_kg}/kg</div></Link>))}</div>)}
+        {activeScreen==="inventory" && (<div className="bg-white rounded-xl border overflow-hidden"><div className="px-4 py-3 border-b flex justify-between text-xs"><span className="text-neutral-500">Lots in warehouse - full</span><span className="text-neutral-400">{lots.length} lots</span></div>{lots.map((lot:any)=>(<Link href={`/lot/${lot.id}`} key={String(lot.id)} className="flex items-center justify-between px-4 py-3 border-b last:border-0 hover:bg-[#fbfaf8] gap-2"><div className="flex items-center gap-3 min-w-0"><div className="w-9 h-9 bg-[#fbfaf8] border rounded-xl flex items-center justify-center text- shrink-0">{getFlag(lot.origin||"")}</div><div className="min-w-0"><div className="text- font-medium truncate">{lot.lot_number} • {lot.origin} • {lot.process||""} • {lot.score||""}</div><div className="text- text-neutral-400 truncate">{lot.Company||""} • {lot.farm||"-"} • {lot.variety||"-"} • {lot.required_bags||"?"} bags</div></div></div><div className="text- font-medium shrink-0">${lot.price_per_kg}/kg</div></Link>))}</div>)}
         {activeScreen==="offers" && (<div className="bg-white rounded-xl border overflow-hidden">{offers.map((o:any)=>(<div key={String(o.id)} className="flex justify-between px-4 py-3 border-b last:border-0"><div><div className="text- font-medium">{o.lot_number} • {o.company_name||"CoffeeHub"} • ${o.price_per_kg}/kg</div><div className="text- text-neutral-400">{o.farm||""} • {o.origin}</div></div><span className="text- px-2 py-1 bg-neutral-100 rounded-full">{o.status||"Open"}</span></div>))}</div>)}
-        {activeScreen==="rooms" && (<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">{rooms.map((r:any)=>(<div key={String(r.id)} className="bg-white rounded-xl border p-4"><div className="flex justify-between mb-2"><span className="text- font-medium truncate">{r.name}</span><span className="text- px-2 py-0.5 border rounded-full">{r.status}</span></div><div className="text- text-neutral-400 mb-3">{(r.offer_ids||"").split(",").filter(Boolean).length} lots</div><div className="flex gap-2"><button onClick={()=>navigator.clipboard.writeText(`${window.location.origin}/r/${r.share_token}`)} className="px-3 py-1.5 rounded-full bg-black text-white text-">Copy link</button><Link href={`/room/${r.id}`} className="px-3 py-1.5 rounded-full border bg-white text-">Edit</Link><Link href={`/r/${r.share_token}`} className="px-3 py-1.5 rounded-full border bg-[#fbfaf8] text-">Buyer</Link></div></div>))}</div>)}
+        {activeScreen==="rooms" && (<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">{rooms.map((r:any)=>(<div key={String(r.id)} className="bg-white rounded-xl border p-4"><div className="flex justify-between mb-1"><span className="text- font-medium truncate">{r.name}</span><span className="text- px-2 py-0.5 border rounded-full h-fit">{r.status}</span></div><div className="text- text-neutral-400 mb-1">{(r.offer_ids||"").split(",").filter(Boolean).length} lots</div><div className="text- text-neutral-400 mb-3 truncate">{r.id}</div><div className="flex gap-2"><button onClick={()=>navigator.clipboard.writeText(`${window.location.origin}/r/${r.share_token}`)} className="px-3 py-1.5 rounded-full bg-black text-white text-">Copy link</button><Link href={`/room/${r.id}`} className="px-3 py-1.5 rounded-full border bg-white text-">Edit</Link><Link href={`/r/${r.share_token}`} className="px-3 py-1.5 rounded-full border bg-[#fbfaf8] text-">Buyer</Link></div></div>))}</div>)}
       </main>
-
-      {showLotModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-xl max-h- flex flex-col">
-            <div className="p-4 border-b flex justify-between items-center"><h2 className="font-semibold text-sm">New lot - all 16 fields</h2><button onClick={()=>setShowLotModal(false)} className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center">✕</button></div>
-            <div className="overflow-y-auto p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <input placeholder="Company *" value={form.Company} onChange={e=>setForm({...form,Company:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="lot_reference" value={form.lot_reference} onChange={e=>setForm({...form,lot_reference:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="lot_number *" value={form.lot_number} onChange={e=>setForm({...form,lot_number:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="origin *" value={form.origin} onChange={e=>setForm({...form,origin:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="process" value={form.process} onChange={e=>setForm({...form,process:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="score" type="number" value={form.score} onChange={e=>setForm({...form,score:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="price_per_kg *" type="number" value={form.price_per_kg} onChange={e=>setForm({...form,price_per_kg:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="harvest_year" type="number" value={form.harvest_year} onChange={e=>setForm({...form,harvest_year:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="required_bags" type="number" value={form.required_bags} onChange={e=>setForm({...form,required_bags:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="certifications" value={form.certifications} onChange={e=>setForm({...form,certifications:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="photo_url" value={form.photo_url} onChange={e=>setForm({...form,photo_url:e.target.value})} className="border rounded-full px-3 py-2 text- col-span-1 sm:col-span-2"/>
-              <input placeholder="variety" value={form.variety} onChange={e=>setForm({...form,variety:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="farm" value={form.farm} onChange={e=>setForm({...form,farm:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="producer" value={form.producer} onChange={e=>setForm({...form,producer:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="altitude" type="number" value={form.altitude} onChange={e=>setForm({...form,altitude:e.target.value})} className="border rounded-full px-3 py-2 text-"/>
-              <input placeholder="cup_notes" value={form.cup_notes} onChange={e=>setForm({...form,cup_notes:e.target.value})} className="border rounded-full px-3 py-2 text- col-span-1 sm:col-span-2"/>
-            </div>
-            <div className="p-3 border-t flex gap-2"><button onClick={()=>setShowLotModal(false)} className="flex-1 py-2.5 rounded-full border text-sm">Cancel</button><button disabled={saving} onClick={createLot} className="flex-1 py-2.5 rounded-full bg-black text-white text-sm">{saving? "Saving..." : "Create"}</button></div>
-          </div>
-        </div>
-      )}
       {showRoomModal && (<div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-[100]"><div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border overflow-hidden flex flex-col" style={{maxHeight:'90vh'}}><div className="p-6 border-b"><h2 className="font-semibold">New buyer room</h2><div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4"><input autoFocus placeholder="Room name *" value={roomForm.name} onChange={e=>setRoomForm({...roomForm,name:e.target.value})} className="border rounded-full px-4 py-2.5 text-sm"/><input placeholder="Buyer email" value={roomForm.email} onChange={e=>setRoomForm({...roomForm,email:e.target.value})} className="border rounded-full px-4 py-2.5 text-sm"/></div></div><div className="px-6 py-3 bg-[#fbfaf8] border-b"><input placeholder="Search offers" value={offerSearch} onChange={e=>setOfferSearch(e.target.value)} className="w-full bg-white border rounded-full px-4 py-2 text-sm"/></div><div className="flex-1 overflow-y-auto divide-y" style={{maxHeight:'280px'}}>{filteredOffers.map((o:any)=>{const checked=roomForm.selectedOffers.includes(o.id);return(<label key={String(o.id)} className={`flex items-center gap-3 px-6 py-3 text-sm cursor-pointer ${checked? "bg-green-50/60" : ""}`}><input type="checkbox" checked={checked} onChange={e=>{if(e.target.checked) setRoomForm({...roomForm,selectedOffers:[...roomForm.selectedOffers,o.id]}); else setRoomForm({...roomForm,selectedOffers:roomForm.selectedOffers.filter(id=>id!==o.id)})}}/><div><div className="font-medium text-">{o.lot_number} • {o.origin}</div><div className="text- text-neutral-400">{o.farm||""}</div></div></label>)})}</div><div className="p-4 border-t flex justify-end gap-2 bg-white"><button onClick={()=>setShowRoomModal(false)} className="px-4 py-2 rounded-full border text-sm">Cancel</button><button disabled={sending} onClick={createRoom} className="px-5 py-2 rounded-full bg-black text-white text-sm">Create</button></div></div></div>)}
     </div>
   )
