@@ -1,51 +1,94 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { createActivity } from "../lib/activity";
 
-export default function SampleRequestButton({ offers, roomId, buyerEmail }: { offers: any[]; roomId: string; buyerEmail: string }) {
+interface Offer { id: string; lot_number: string; }
+interface Props { roomId: string; buyerEmail: string; offers: Offer[]; }
+
+export default function SampleRequestButton({ roomId, buyerEmail, offers }: Props) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
 
-  const handle = async () => {
-    if (!buyerEmail) return alert("Buyer email missing - set in RoomParticipants");
-    if (!offers.length) return alert("No offers");
+  async function requestSamples() {
+    if (loading) return;
     setLoading(true);
     try {
-      const sampleRequestId = crypto.randomUUID();
-      const { error: srErr } = await supabase.from("SampleRequests").insert({
-        id: sampleRequestId,
-        room_id: roomId,
-        buyer_email: buyerEmail,
-        status: "Approved",
-        notes: ""
-      });
-      if (srErr) throw srErr;
+      const { data: existingRequest, error: existingError } = await supabase
+      .from("SampleRequests").select("id").eq("room_id", roomId).limit(1);
+      if (existingError) throw existingError;
+      if (existingRequest && existingRequest.length > 0) {
+        alert("A sample request already exists for this room.");
+        router.refresh();
+        return;
+      }
 
-      // Link offers - exact table SampleRequestOffers
-      const links = offers.map((o: any) => ({
-        sample_request_id: sampleRequestId,
-        offer_id: o.id
+      const { data: sampleRequest, error: requestError } = await supabase
+      .from("SampleRequests")
+      .insert({ room_id: roomId, buyer_email: buyerEmail, status: "Approved", notes: "" })
+      .select().single();
+      if (requestError) throw requestError;
+
+      const rows = offers.map((offer) => ({
+        sample_request_id: sampleRequest.id,
+        offer_id: offer.id,
       }));
-      const { error: linkErr } = await supabase.from("SampleRequestOffers").insert(links);
-      if (linkErr) console.warn("SampleRequestOffers:", linkErr.message);
+      const { error: offerError } = await supabase.from("SampleRequestOffers").insert(rows);
+      if (offerError) throw offerError;
 
-      const { error: sErr } = await supabase.from("Samples").insert({
-        sample_request_id: sampleRequestId,
+      // CREATE Samples row so buyer portal shows Preparing/Shipped
+      const { data: sampleRow } = await supabase.from("Samples").insert({
+        sample_request_id: sampleRequest.id,
         room_id: roomId,
         buyer_email: buyerEmail,
         status: "Preparing",
         courier: "",
-        tracking_number: ""
+        tracking_number: "",
+        notes: ""
+      }).select().single();
+
+      // ---- FIX: notify seller via Resend ----
+      fetch("/api/send-sample-request",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          roomId,
+          buyerEmail,
+          offerIds: offers.map(o=>o.lot_number).join(", "),
+          buyerLink: `${window.location.origin}/samples`
+        })
+      }).catch(()=>{})
+
+      await createActivity({
+        entityType: "SampleRequest",
+        entityId: sampleRequest.id,
+        roomId: roomId,
+        action: "requested",
+        title: "New Sample Request",
+        description: `${buyerEmail} requested samples.`,
+        link: "/sample-requests",
+        createdBy: buyerEmail,
       });
-      if (sErr) throw sErr;
 
-      setDone(true);
+      alert("Sample request submitted successfully.");
+      router.refresh();
       location.reload();
-    } catch (e: any) {
-      alert(e.message);
-    } finally { setLoading(false); }
-  };
+    } catch (error) {
+      console.error(error);
+      alert("Unable to submit sample request.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  if (done) return <div className="text-[12px] bg-blue-50 border border-blue-200 text-blue-700 rounded-full px-3 py-1">Sample Request Submitted ✓</div>;
-  return <button onClick={handle} disabled={loading} className="h-9 px-4 rounded-full bg-[#111] text-white text-[12px] font-medium disabled:opacity-50">{loading ? "Requesting..." : "Request Sample"}</button>;
+  return (
+    <button
+      onClick={requestSamples}
+      disabled={loading}
+      className="h-9 px-4 rounded-full bg-[#111] text-white text- font-medium hover:bg-black disabled:opacity-50 transition"
+    >
+      {loading? "Submitting..." : "Request Sample"}
+    </button>
+  );
 }
