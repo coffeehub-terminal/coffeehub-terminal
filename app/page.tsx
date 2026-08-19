@@ -40,8 +40,8 @@ export default function Home(){
         <div className="max-w-6xl mx-auto px-3 sm:px-6 py-2.5">
           <img src="/coffeehub-logo.png" alt="CoffeeHub" className="object-contain block" style={{height:'28px', width:'auto', maxWidth:'130px'}} />
           <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
-            <Link href="/samples" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-2.5 text- font-medium text-zinc-700">Samples {newSamples>0? `(${newSamples})` : ""}</Link>
-            <Link href="/purchase-orders" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-2.5 text- font-medium text-zinc-700">POs {newPOs>0? `(${newPOs})` : ""}</Link>
+                        <Link href="/samples" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-2.5 text- font-medium text-zinc-700">Samples {newSamples>0? <span className="ml-1 text- font-bold text-[#00d26a]">{newSamples}</span> : null}</Link>
+            <Link href="/purchase-orders" className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-white px-2.5 text- font-medium text-zinc-700">POs {newPOs>0? <span className="ml-1 text- font-bold text-[#00d26a]">{newPOs}</span> : null}</Link>
             <div className="relative">
               <button onClick={()=>setShowMore(!showMore)} className="inline-flex h- items-center justify-center whitespace-nowrap rounded-full border border-zinc-200 bg-[#fbfaf8] px-2.5 text- font-medium text-zinc-700">More ▾</button>
               {showMore && <div className="absolute left-0 top- w-44 bg-white border border-zinc-200 rounded-xl shadow-xl p-1 z-50"><Link href="/contracts" className="block px-3 py-2 rounded-lg hover:bg-zinc-50 text-">Contracts</Link><Link href="/logistics" className="block px-3 py-2 rounded-lg hover:bg-zinc-50 text-">Logistics</Link></div>}
